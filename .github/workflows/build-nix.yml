@@ -1,6 +1,7 @@
 name: Build on Nix
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
