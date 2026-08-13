@@ -71,8 +71,10 @@ fi
 
 load_nix() {
     command -v nix >/dev/null 2>&1 && return 0
-    [[ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]] && \
+    if [[ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
+        # shellcheck disable=SC1091
         source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+    fi
     command -v nix >/dev/null 2>&1
 }
 

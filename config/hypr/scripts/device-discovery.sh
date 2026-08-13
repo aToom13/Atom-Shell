@@ -91,6 +91,7 @@ print(net)
 PY
 )
     printf 'Scanning %s on %s…\n' "$network" "$iface" >&2
+    # shellcheck disable=SC2016 # $1 belongs to the inner sh invoked by xargs.
     python3 - "$network" "$own" <<'PY' | xargs -r -P 64 -n 1 sh -c 'ping -n -c 1 -W 1 "$1" >/dev/null 2>&1 || true' sh
 import ipaddress, sys
 net = ipaddress.ip_network(sys.argv[1], strict=False)

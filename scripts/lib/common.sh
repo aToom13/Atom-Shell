@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034 # Shared library variables are consumed by sourcing scripts.
 
 if [[ -n ${ATOM_SHELL_COMMON_LOADED:-} ]]; then
     return 0
@@ -24,7 +25,6 @@ warn() { printf '\033[1;33m[Atom Shell]\033[0m %s\n' "$*" >&2; }
 die() { printf '\033[1;31m[Atom Shell]\033[0m %s\n' "$*" >&2; exit 1; }
 
 quote_cmd() {
-    local arg
     printf '  '
     printf '%q ' "$@"
     printf '\n'

@@ -30,7 +30,9 @@ if [[ $NON_INTERACTIVE != true ]]; then
 fi
 
 new_backup
-command -v atomshell >/dev/null 2>&1 && atomshell stop || true
+if command -v atomshell >/dev/null 2>&1; then
+    atomshell stop || true
+fi
 
 service_target=$CONFIG_HOME/systemd/user/atomshell-usb-notify.service
 SERVICE_INSTALLED=false
