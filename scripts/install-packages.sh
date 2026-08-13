@@ -6,7 +6,7 @@ set -euo pipefail
 install_arch_packages() {
     local -a build runtime optional aur
     build=(
-        base-devel cmake ninja git rsync jq curl pkgconf
+        base-devel cmake ninja git rsync jq ripgrep curl pkgconf
         qt6-base qt6-declarative qt6-shadertools qt6-wayland qt6-svg qt6-imageformats
         pipewire libpipewire aubio libcava fftw libqalculate lm_sensors
     )
@@ -54,7 +54,7 @@ apt_available() {
 install_debian_packages() {
     local -a wanted available
     wanted=(
-        git curl rsync jq ca-certificates xz-utils
+        git curl rsync jq ripgrep ca-certificates xz-utils
         network-manager bluez blueman pipewire wireplumber policykit-1-gnome
         gnome-keyring libnotify-bin brightnessctl ddcutil lm-sensors swappy
         grim slurp wl-clipboard fuzzel gammastep geoclue-2.0 kitty thunar
@@ -62,7 +62,7 @@ install_debian_packages() {
         avahi-daemon nmap netcat-openbsd usbutils hwdata zenity fish
     )
     if [[ ${PROFILE:-full} == minimal ]]; then
-        wanted=(git curl rsync jq ca-certificates xz-utils network-manager pipewire wireplumber libnotify-bin)
+        wanted=(git curl rsync jq ripgrep ca-certificates xz-utils network-manager pipewire wireplumber libnotify-bin)
     fi
     local package
     for package in "${wanted[@]}"; do
