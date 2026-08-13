@@ -1,16 +1,18 @@
 # Security
 
-## Kurucu güvenlik modeli
+**English** | [Türkçe](SECURITY.tr.md)
 
-- `install.sh` root olarak çalışmayı reddeder.
-- Sistem değişiklikleri yalnızca dağıtım paketlerinin kurulumu ve isteğe bağlı resmî Nix kurulumudur; gerektiğinde `sudo` görünür biçimde çağrılır.
-- `--dry-run` dosya veya paket değiştirmeden komutları gösterir.
-- Değiştirilecek kullanıcı dosyaları önce `~/.local/state/atomshell/backups` altına kopyalanır.
-- Kaldırıcı sistem paketlerini otomatik silmez.
-- Eski root/udev tabanlı USB bildirim kurulumu kullanılmaz. Bildirim servisi kullanıcı oturumunda çalışır.
+## Installer security model
 
-Nix kurucusu kullanılacaksa betik yalnızca `https://nixos.org/nix/install` adresinden TLS zorlamasıyla indirilir ve kullanıcı `--install-nix` ile ya da etkileşimli onayla izin verir.
+- `install.sh` refuses to run as root.
+- System changes are limited to distribution package installation and the optional official Nix installer; `sudo` is invoked visibly when required.
+- `--dry-run` displays commands without modifying files or packages.
+- User files are copied to `~/.local/state/atomshell/backups` before modification.
+- The uninstaller deliberately leaves system packages installed.
+- The former root/udev-based USB notification setup is not used; notifications run entirely in the user session.
 
-## Güvenlik açığı bildirimi
+When Nix installation is requested, the script downloads only `https://nixos.org/nix/install` with TLS enforcement and proceeds only after `--install-nix` or interactive user approval.
 
-Komut enjeksiyonu, ayrıcalık yükseltme veya hassas veri sızıntısı bulursanız herkese açık issue açmadan önce depo sahibine özel GitHub güvenlik bildirimi gönderin. Bildirimde etkilenen commit, çoğaltma adımları ve olası etkiyi belirtin.
+## Reporting a vulnerability
+
+If you discover command injection, privilege escalation, or sensitive-data exposure, submit a private GitHub security advisory to the repository owner before opening a public issue. Include the affected commit, reproduction steps, and expected impact.

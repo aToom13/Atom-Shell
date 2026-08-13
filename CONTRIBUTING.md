@@ -1,10 +1,12 @@
-# Katkı ve upstream güncelleme
+# Contributing and upstream updates
 
-Değişiklikten önce `./tests/smoke.sh` çalıştırın. Native geliştirme ortamında ayrıca CMake derlemesi ve çalışan Hyprland oturumunda `atomshell restart` testi beklenir.
+**English** | [Türkçe](CONTRIBUTING.tr.md)
 
-Kod biçimi upstream Caelestia Shell stilini izler. İç `Caelestia.*` ad alanlarını sırf marka değişikliği için yeniden adlandırmayın; bu, upstream birleştirmelerini gereksiz yere zorlaştırır.
+Run `./tests/smoke.sh` before submitting a change. Native development also requires a CMake build and an `atomshell restart` test inside a running Hyprland session.
 
-## Upstream v2.x birleştirme
+Follow the upstream Caelestia Shell code style. Do not rename internal `Caelestia.*` namespaces solely for branding; doing so makes upstream merges unnecessarily difficult.
+
+## Merging an upstream v2.x release
 
 ```bash
 git fetch upstream --tags
@@ -14,6 +16,6 @@ git merge --no-ff v2.3.0
 ./install.sh --dry-run --no-packages
 ```
 
-Çakışmalarda Atom Shell’in ek Nexus sayfalarını koruyun; upstream yapılandırma API’si değişmişse özel sayfaları yeni API’ye taşıyın. Özellikle `ConfigList` alanları QML’de `.values`, `.count`, `.at()`, `.insert()`, `.move()` ve `.remove()` ile kullanılır.
+Resolve conflicts by preserving Atom Shell's additional Nexus pages. When the upstream configuration API changes, migrate custom pages to the new API. In particular, QML accesses `ConfigList` fields through `.values`, `.count`, `.at()`, `.insert()`, `.move()`, and `.remove()`.
 
-Birleştirmeden sonra native runtime’ı baştan derleyin. Ağ, ses, kilit, görev çubuğu, launcher, bildirim ve aygıt sayfalarını görsel olarak test edin.
+Rebuild the native runtime after a merge. Visually test networking, audio, lock screen, taskbar, launcher, notifications, and device pages.

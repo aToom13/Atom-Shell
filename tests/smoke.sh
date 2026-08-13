@@ -4,17 +4,17 @@ set -euo pipefail
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 cd "$ROOT"
 
-printf '[1/8] Bash sözdizimi\n'
+printf '[1/9] Bash sözdizimi\n'
 while IFS= read -r -d '' file; do
     bash -n "$file"
 done < <(find . -type f -name '*.sh' -not -path './.git/*' -not -path './.build/*' -print0)
 
-printf '[2/8] JSON geçerliliği\n'
+printf '[2/9] JSON geçerliliği\n'
 while IFS= read -r -d '' file; do
     jq empty "$file"
 done < <(find config .github -type f -name '*.json' -print0)
 
-printf '[3/8] Lua sözdizimi\n'
+printf '[3/9] Lua sözdizimi\n'
 if command -v luac >/dev/null 2>&1; then
     while IFS= read -r -d '' file; do
         luac -p "$file"
@@ -23,7 +23,7 @@ else
     printf '  luac yok; atlandı\n'
 fi
 
-printf '[4/8] Taşınabilirlik ve merge işaretleri\n'
+printf '[4/9] Taşınabilirlik ve merge işaretleri\n'
 if rg -n '/home/atom13|\batom13\b|weatherLocation"[[:space:]]*:[[:space:]]*"Ankara"' \
     --glob '!tests/smoke.sh' --glob '!.git/**' .; then
     printf 'Kullanıcıya özel değer bulundu.\n' >&2
@@ -34,14 +34,14 @@ if rg -n '^(<<<<<<<|=======|>>>>>>>)' --glob '!.git/**' .; then
     exit 1
 fi
 
-printf '[5/8] v2.3 yapılandırma API kontrolü\n'
+printf '[5/9] v2.3 yapılandırma API kontrolü\n'
 if rg -n '"status"[[:space:]]*:|Config\.bar\.entries\.(find|map)|Config\.bar\.entries\.length|GlobalConfig\.bar\.entries[[:space:]]*=|GlobalConfig\.utilities\.quickToggles[[:space:]]*=' \
     config modules --glob '*.json' --glob '*.qml'; then
     printf 'Eski v2.2 yapılandırma API kullanımı bulundu.\n' >&2
     exit 1
 fi
 
-printf '[6/8] v2.2 yapılandırma geçişi\n'
+printf '[6/9] v2.2 yapılandırma geçişi\n'
 test_root=$(mktemp -d)
 trap 'rm -rf -- "$test_root"' EXIT
 cp tests/fixtures/shell-v2.2.json "$test_root/shell.json"
@@ -85,7 +85,23 @@ rg -q "readonly property string version: \"${version}\"" utils/AtomInfo.qml || {
     [[ $first_backup != "$BACKUP_DIR" ]]
 )
 
-printf '[7/8] Kurucu dry-run\n'
+printf '[7/9] Çift dilli belgeler\n'
+for pair in \
+    'README.md README.tr.md' \
+    'CONTRIBUTING.md CONTRIBUTING.tr.md' \
+    'SECURITY.md SECURITY.tr.md' \
+    'docs/ARCHITECTURE.md docs/ARCHITECTURE.tr.md' \
+    'docs/DISTROS.md docs/DISTROS.tr.md'; do
+    read -r english turkish <<< "$pair"
+    [[ -s $english && -s $turkish ]] || {
+        printf 'Belge dil çifti eksik: %s / %s\n' "$english" "$turkish" >&2
+        exit 1
+    }
+    rg -q 'Türkçe' "$english"
+    rg -q 'English' "$turkish"
+done
+
+printf '[8/9] Kurucu dry-run\n'
 rm -rf -- "$test_root"
 test_root=$(mktemp -d)
 trap 'rm -rf -- "$test_root"' EXIT
@@ -101,7 +117,7 @@ env HOME="$test_root/home" \
     exit 1
 }
 
-printf '[8/8] Git whitespace ve isteğe bağlı ShellCheck\n'
+printf '[9/9] Git whitespace ve isteğe bağlı ShellCheck\n'
 git diff --check
 if command -v shellcheck >/dev/null 2>&1; then
     mapfile -d '' scripts < <(find . -type f -name '*.sh' -not -path './.git/*' -not -path './.build/*' -print0)

@@ -1,30 +1,32 @@
-# Dağıtım notları
+# Distribution notes
 
-## Arch Linux ve CachyOS
+**English** | [Türkçe](DISTROS.tr.md)
 
-Birincil ve yerel hedef budur. Kurucu Qt, Quickshell, Caelestia CLI, derleme araçları ve masaüstü entegrasyonlarını pacman ile; gerekirse `paru`/`yay` ile kurar. C++ eklentileri mevcut Qt sürümüne karşı derlendiği için büyük Qt güncellemelerinden sonra `atomshell update` veya `./install.sh --no-packages` çalıştırılmalıdır.
+## Arch Linux and CachyOS
+
+This is the primary native target. The installer obtains Qt, Quickshell, Caelestia CLI, build tools, and desktop integrations through pacman and, when necessary, `paru` or `yay`. Native C++ plugins are linked against the installed Qt version, so run `atomshell update` or `./install.sh --no-packages` after a major Qt upgrade.
 
 ## Debian 13/14
 
-Host servisleri apt ile, modern Qt/Quickshell/Caelestia runtime’ı Nix ile kurulur. Debian’ın Hyprland paketi 0.55 veya yeniyse kullanılabilir; değilse kurucunun profile eklediği Nix Hyprland kullanılmalıdır.
+Host integration services are installed with apt, while Nix provides a current Qt/Quickshell compatibility runtime. Debian's Hyprland package may be used when it is version 0.55 or newer; otherwise use the Nix Hyprland added to the user profile.
 
-## Ubuntu ve Linux Mint
+## Ubuntu and Linux Mint
 
-Ubuntu/Mint’in Qt ve Hyprland paketleri sürüme göre Atom Shell gereksinimlerinin gerisinde kalabilir. Bu nedenle kurucu Nix runtime’ını varsayar ve Nix Hyprland’ı profile ekler. Display manager eski `/usr/bin/Hyprland` oturumunu açıyorsa `~/.nix-profile/bin/Hyprland` kullanan bir Wayland session girdisi oluşturmak gerekebilir.
+Depending on the release, Ubuntu and Mint may ship Qt and Hyprland versions older than Atom Shell requires. The installer therefore defaults to the Nix runtime and adds Nix Hyprland to the profile. If the display manager still launches `/usr/bin/Hyprland`, create a Wayland session entry that launches `~/.nix-profile/bin/Hyprland`.
 
-Bu hedef “deneysel” olarak işaretlidir çünkü portal, ekran paylaşımı ve polkit agent paket adları dağıtım sürümleri arasında değişir. `atomshell doctor` eksikleri gösterir.
+This target is marked experimental because portal, screen-sharing, and polkit agent package names vary across distribution releases. `atomshell doctor` reports missing functionality.
 
-## Asgari sürümler
+## Minimum versions
 
-- Hyprland 0.55 (Lua config desteği)
-- Qt 6.9 (Atom Shell v2.3 plugin CMake gereksinimi)
-- Quickshell 0.3 veya güncel git sürümü
-- CMake 3.19; modern Ninja ve C++20 derleyici
+- Hyprland 0.55 for Lua configuration support
+- Qt 6.9 for the Atom Shell v2.3 plugin CMake requirements
+- Quickshell 0.3 or a current Git build
+- CMake 3.19, a modern Ninja, and a C++20 compiler
 
-## Paket grupları
+## Package groups
 
-Temel: NetworkManager, PipeWire/WirePlumber, notification daemon istemcileri, jq, rsync ve Git.
+Core: NetworkManager, PipeWire/WirePlumber, notification clients, jq, rsync, ripgrep, and Git.
 
-Tam profil: Bluetooth/Blueman, KDE Connect/SSHFS, udiskie, inotify-tools, ekran görüntüsü araçları, parlaklık/DDC, clipboard history, polkit agent, keyring, Geoclue/Gammastep ve tanılama yardımcıları.
+Full profile: Bluetooth/Blueman, KDE Connect/SSHFS, udiskie, inotify-tools, screenshot tools, brightness/DDC controls, clipboard history, a polkit agent, keyring, Geoclue/Gammastep, and diagnostic utilities.
 
-Kurucu dağıtımda bulunmayan isteğe bağlı apt paketlerini atlar; `atomshell doctor` işlev bazında uyarır.
+The installer skips optional apt packages unavailable on the current distribution; `atomshell doctor` reports the corresponding feature-level warnings.

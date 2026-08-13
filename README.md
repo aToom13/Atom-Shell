@@ -1,31 +1,33 @@
 # Atom Shell
 
-Atom Shell, Caelestia Shell v2.3 tabanı üzerinde geliştirilen, kendi güncelleme ve yedekleme sistemine sahip kişisel bir Hyprland masaüstü katmanıdır. Proje; özel Nexus sayfalarını, gelişmiş ağ tanılamayı, aygıt yönetimini ve taşınabilir Hyprland yapılandırmasını tek depoda tutar.
+**English** | [Türkçe](README.tr.md)
 
-> Atom Shell bağımsız bir fork’tur; Caelestia projesinin resmî sürümü değildir. İç QML ad alanları ve `~/.config/caelestia` şeması upstream uyumluluğu için korunur.
+Atom Shell is a personal Hyprland desktop layer based on Caelestia Shell v2.3, with its own safe installation, update, backup, and rollback workflow. It keeps custom Nexus pages, advanced network diagnostics, device management, and a portable Hyprland configuration in one repository.
 
-## Öne çıkanlar
+> Atom Shell is an independent fork and is not an official Caelestia release. Internal QML namespaces and the `~/.config/caelestia` schema remain unchanged for upstream compatibility.
 
-- Nexus içinde ekran, güncelleme, eklenti, klavye kısayolu, güç/kilit ve ayrıntılı servis ayarları
-- Wi‑Fi, Ethernet, kayıtlı ağlar, NetworkManager VPN profilleri ve v2.3 VPN sağlayıcı yönetimi
-- Canlı bağlantı bilgisi, ağ/DNS/HTTPS tanılama, LAN/USB/KDE Connect keşfi
-- Yapılandırılabilir görev çubuğu bileşenleri, durum simgeleri ve hızlı araçlar
-- Tek komutla kurulum, güncelleme, doktor, kaldırma ve yedekten geri alma
-- Mevcut kullanıcı dosyalarına dokunmadan önce tarih damgalı yedek
-- Arch/CachyOS için yerel; Debian/Ubuntu/Mint için Nix tabanlı modern Qt/Quickshell runtime’ı
+## Highlights
 
-## Destek durumu
+- Nexus pages for displays, updates, plugins, keyboard shortcuts, power/lock, and detailed service settings
+- Wi-Fi, Ethernet, saved networks, NetworkManager VPN profiles, and v2.3 VPN provider management
+- Live connection data, network/DNS/HTTPS diagnostics, and LAN/USB/KDE Connect discovery
+- Configurable taskbar entries, status icons, quick toggles, and utility panels
+- One-command install, update, diagnostics, uninstall, and rollback
+- Timestamped backups before modifying existing user files
+- Native runtime on Arch/CachyOS and a modern Nix-based Qt/Quickshell runtime on Debian/Ubuntu/Mint
 
-| Dağıtım | Runtime | Durum |
+## Support status
+
+| Distribution | Runtime | Status |
 |---|---|---|
-| Arch Linux | Yerel Qt 6.9+, Quickshell | Tam destek |
-| CachyOS | Yerel Qt 6.9+, Quickshell | Tam destek |
-| Debian 13/14 | Nix runtime + apt entegrasyon paketleri | Desteklenir |
-| Ubuntu / Linux Mint | Nix runtime + apt entegrasyon paketleri | Deneysel; Hyprland 0.55+ zorunlu |
+| Arch Linux | Native Qt 6.9+, Quickshell | Fully supported |
+| CachyOS | Native Qt 6.9+, Quickshell | Fully supported |
+| Debian 13/14 | Nix runtime + apt integration packages | Supported |
+| Ubuntu / Linux Mint | Nix runtime + apt integration packages | Experimental; Hyprland 0.55+ required |
 
-Hyprland Lua yapılandırması 0.55 ile geldiği için daha eski Hyprland sürümleri çalışmaz. Ubuntu/Mint depolarındaki Hyprland eskiyse kurucu Nix profilindeki güncel Hyprland’ı ekler; oturum yöneticisinin bu binary’yi kullandığını ayrıca doğrulamak gerekir. Ayrıntılar: [Dağıtım notları](docs/DISTROS.md).
+Hyprland 0.55 introduced the Lua configuration API used by this project, so older versions are unsupported. If Ubuntu or Mint ships an older Hyprland, the installer adds a current Nix Hyprland to the user profile; the session manager must also be configured to launch that binary. See [distribution notes](docs/DISTROS.md).
 
-## Kurulum
+## Installation
 
 ```bash
 git clone https://github.com/aToom13/Atom-Shell.git
@@ -34,33 +36,33 @@ cd Atom-Shell
 ./install.sh
 ```
 
-Kurucu root olarak çalıştırılmaz. Sistem paketi gerektiğinde açıkça `sudo` çağırır.
+Do not run the installer as root. It invokes `sudo` visibly only when system packages must be installed.
 
-Varsayılan `merge` modu mevcut `~/.config/caelestia` ve `~/.config/hypr` değerlerini korur; yalnızca eksik şablonları ekler. Bilinen eski v2.2 `bar.status` alanı ile eski Hyprland başlatma komutları, önce tam dizin yedeği alınarak v2.3/Atom Shell biçimine otomatik taşınır. Depodaki tam masaüstü ayarlarını uygulamak için:
+The default `merge` mode preserves existing values in `~/.config/caelestia` and `~/.config/hypr`, adding only missing templates. Known v2.2 `bar.status` settings and legacy Hyprland launch commands are migrated automatically after a full directory backup. To apply the complete desktop configuration from this repository, use:
 
 ```bash
 ./install.sh --config-mode replace
 ```
 
-`replace`, önce iki dizini de yedekler. Diğer yararlı seçenekler:
+`replace` backs up both configuration directories first. Other useful options:
 
 ```text
---dry-run                 Değişiklik yapmadan planı gösterir
---no-packages             Paket yöneticisine dokunmaz
---no-build                Qt/QML runtime’ını yeniden derlemez
---profile minimal|full    Temel veya bütün entegrasyonlar
---runtime auto|native|nix Runtime yöntemini seçer
---install-nix             Nix yoksa resmî kurucuyu çalıştırır
+--dry-run                 Show the plan without changing anything
+--no-packages             Do not invoke a package manager
+--no-build                Do not rebuild the Qt/QML runtime
+--profile minimal|full    Install core or complete integrations
+--runtime auto|native|nix Select the runtime method
+--install-nix             Install Nix from the official installer if missing
 --config-mode merge|replace|skip
 ```
 
-Debian/Ubuntu/Mint üzerinde otomatik kurulum için:
+For an automated Debian/Ubuntu/Mint installation:
 
 ```bash
 ./install.sh --install-nix
 ```
 
-## Kullanım
+## Usage
 
 ```bash
 atomshell start
@@ -71,76 +73,70 @@ atomshell settings
 atomshell doctor
 ```
 
-`~/.local/bin` PATH içinde değilse shell profilinize şunu ekleyin:
+If `~/.local/bin` is not in `PATH`, add it to your shell profile:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-## Güncelleme güvenliği
+## Update safety
 
-Normal sistem güncellemesi Atom Shell kaynaklarını silmez:
+A normal system upgrade does not remove Atom Shell:
 
-- Shell kodu kullanıcıya ait `~/.config/quickshell/caelestia` dizinindedir.
-- Yerel derlenmiş eklentiler `~/.local/share/atomshell/runtime` altında tutulur.
-- `/usr/share` ve `/etc/xdg` içindeki `caelestia-shell` paket dosyaları değiştirilmez.
-- Quickshell, kullanıcı dizinini sistemdeki `/etc/xdg/quickshell/caelestia` kopyasından önce seçer.
+- Shell sources live in the user-owned `~/.config/quickshell/caelestia` directory.
+- Native compiled plugins live under `~/.local/share/atomshell/runtime`.
+- Package-owned files in `/usr/share` and `/etc/xdg` are never modified.
+- Quickshell selects the user configuration before `/etc/xdg/quickshell/caelestia`.
 
-Qt veya Quickshell ABI değiştiğinde yerel eklentiyi yeniden derlemek gerekir. Bunu güvenli güncelleyici yapar:
+The local plugin must be rebuilt after a Qt or Quickshell ABI change. The safe updater handles this:
 
 ```bash
 atomshell update --check
 atomshell update
 ```
 
-Güncelleyici kirli Git çalışma ağacında ilerlemez, yalnızca fast-forward kabul eder, smoke testini çalıştırır ve kurulumu yedekleyerek yeniler.
+The updater refuses a dirty Git tree or diverged history, accepts only a fast-forward update, runs smoke tests, and reinstalls with a backup.
 
-Shell’i doğrudan `qs -c caelestia` veya `caelestia shell` ile açmayın: sistemde v2.2 paketi kalmışsa v2.3 ayarlarını eski plugin ile yükler ve `Unknown option bar.statusIcons` uyarısı verir. `atomshell start/restart` her zaman projeye ait doğru runtime’ı seçer.
+Do not launch the shell directly with `qs -c caelestia` or `caelestia shell`. If a v2.2 system package remains installed, it can load the v2.3 configuration through the old plugin and report `Unknown option bar.statusIcons`. `atomshell start/restart` always selects the project-owned runtime.
 
-## Yedek, geri alma ve kaldırma
+## Backup, rollback, and removal
 
-Yedekler burada tutulur:
+Backups are stored in:
 
 ```text
 ~/.local/state/atomshell/backups/YYYYMMDD-HHMMSS[-N]/
 ```
 
-Bir yedeği listelemek veya geri yüklemek için:
+List or restore a backup with:
 
 ```bash
 ./rollback.sh
 ./rollback.sh ~/.local/state/atomshell/backups/20260813-150000
 ```
 
-Kaldırma kullanıcı ayarlarını varsayılan olarak korur:
+Uninstalling preserves user configuration by default:
 
 ```bash
 atomshell uninstall
 atomshell uninstall --purge-config
 ```
 
-Kurucunun yüklediği sistem paketleri otomatik kaldırılmaz; başka masaüstü bileşenleri de onları kullanabilir.
+System packages installed by the setup are deliberately not removed automatically because other desktop components may use them.
 
-## Dizin yapısı
+## Repository layout
 
 ```text
-assets/, components/, modules/, services/, utils/  Shell kaynakları
-plugin/, extras/                                    Derlenen Caelestia uyumluluk modülleri
-config/caelestia/                                   Taşınabilir shell ayar şablonları
-config/hypr/                                        Hyprland Lua yapılandırması ve yardımcılar
-scripts/                                            Kurulum altyapısı
-docs/                                               Mimari ve dağıtım belgeleri
-tests/                                              Statik ve dry-run testleri
+assets/, components/, modules/, services/, utils/  Shell sources
+plugin/, extras/                                    Compiled compatibility modules
+config/caelestia/                                   Portable shell configuration templates
+config/hypr/                                        Hyprland Lua configuration and helpers
+scripts/                                            Installation infrastructure
+docs/                                               Architecture and distribution docs
+tests/                                              Static and dry-run validation
 ```
 
-Geliştirme ve upstream birleştirme: [CONTRIBUTING.md](CONTRIBUTING.md). Güvenlik modeli: [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and upstream merges, [SECURITY.md](SECURITY.md) for the security model, and [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the runtime design.
 
-## Kaynak ve lisans
+## Origin and license
 
-Atom Shell, GPL-3.0-only lisanslı [Caelestia Shell](https://github.com/caelestia-dots/shell) projesinden türetilmiştir ve aynı lisansla dağıtılır. Orijinal proje ve katkıcılarının telif hakları korunur. Ayrıntı için [LICENSE](LICENSE) dosyasına bakın.
-
----
-
-## English summary
-
-Atom Shell is an independent, GPL-3.0-only desktop-shell fork based on Caelestia Shell v2.3. It keeps the shell source in the user configuration directory, isolates compiled plugins in a user-owned runtime, and provides safe install, update, backup, rollback and uninstall commands. Arch/CachyOS use a native runtime; Debian/Ubuntu/Mint use Nix for a consistent modern Qt/Quickshell stack. Existing Hyprland and Caelestia settings are preserved by default.
+Atom Shell is derived from the GPL-3.0-only [Caelestia Shell](https://github.com/caelestia-dots/shell) project and is distributed under the same license. Copyright notices for the original project and its contributors are preserved. See [LICENSE](LICENSE).
