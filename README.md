@@ -1,959 +1,146 @@
-<h1 align=center>caelestia-shell</h1>
+# Atom Shell
 
-<div align=center>
+Atom Shell, Caelestia Shell v2.3 tabanı üzerinde geliştirilen, kendi güncelleme ve yedekleme sistemine sahip kişisel bir Hyprland masaüstü katmanıdır. Proje; özel Nexus sayfalarını, gelişmiş ağ tanılamayı, aygıt yönetimini ve taşınabilir Hyprland yapılandırmasını tek depoda tutar.
 
-![GitHub last commit](https://img.shields.io/github/last-commit/caelestia-dots/shell?style=for-the-badge&labelColor=101418&color=9ccbfb)
-![GitHub Repo stars](https://img.shields.io/github/stars/caelestia-dots/shell?style=for-the-badge&labelColor=101418&color=b9c8da)
-![GitHub repo size](https://img.shields.io/github/repo-size/caelestia-dots/shell?style=for-the-badge&labelColor=101418&color=d3bfe6)
-[![Ko-Fi donate](https://img.shields.io/badge/donate-kofi?style=for-the-badge&logo=ko-fi&logoColor=ffffff&label=ko-fi&labelColor=101418&color=f16061&link=https%3A%2F%2Fko-fi.com%2Fsoramane)](https://ko-fi.com/soramane)
-[![Discord invite](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscordapp.com%2Fapi%2Finvites%2FBGDCFCmMBk%3Fwith_counts%3Dtrue&query=approximate_member_count&style=for-the-badge&logo=discord&logoColor=ffffff&label=discord&labelColor=101418&color=96f1f1&link=https%3A%2F%2Fdiscord.gg%2FBGDCFCmMBk)](https://discord.gg/BGDCFCmMBk)
+> Atom Shell bağımsız bir fork’tur; Caelestia projesinin resmî sürümü değildir. İç QML ad alanları ve `~/.config/caelestia` şeması upstream uyumluluğu için korunur.
 
-</div>
+## Öne çıkanlar
 
-https://github.com/user-attachments/assets/0840f496-575c-4ca6-83a8-87bb01a85c5f
+- Nexus içinde ekran, güncelleme, eklenti, klavye kısayolu, güç/kilit ve ayrıntılı servis ayarları
+- Wi‑Fi, Ethernet, kayıtlı ağlar, NetworkManager VPN profilleri ve v2.3 VPN sağlayıcı yönetimi
+- Canlı bağlantı bilgisi, ağ/DNS/HTTPS tanılama, LAN/USB/KDE Connect keşfi
+- Yapılandırılabilir görev çubuğu bileşenleri, durum simgeleri ve hızlı araçlar
+- Tek komutla kurulum, güncelleme, doktor, kaldırma ve yedekten geri alma
+- Mevcut kullanıcı dosyalarına dokunmadan önce tarih damgalı yedek
+- Arch/CachyOS için yerel; Debian/Ubuntu/Mint için Nix tabanlı modern Qt/Quickshell runtime’ı
 
-## Components
+## Destek durumu
 
--   Widgets: [`Quickshell`](https://quickshell.outfoxxed.me)
--   Window manager: [`Hyprland`](https://hyprland.org)
--   Dots: [`caelestia`](https://github.com/caelestia-dots)
+| Dağıtım | Runtime | Durum |
+|---|---|---|
+| Arch Linux | Yerel Qt 6.9+, Quickshell | Tam destek |
+| CachyOS | Yerel Qt 6.9+, Quickshell | Tam destek |
+| Debian 13/14 | Nix runtime + apt entegrasyon paketleri | Desteklenir |
+| Ubuntu / Linux Mint | Nix runtime + apt entegrasyon paketleri | Deneysel; Hyprland 0.55+ zorunlu |
 
-## Installation
+Hyprland Lua yapılandırması 0.55 ile geldiği için daha eski Hyprland sürümleri çalışmaz. Ubuntu/Mint depolarındaki Hyprland eskiyse kurucu Nix profilindeki güncel Hyprland’ı ekler; oturum yöneticisinin bu binary’yi kullandığını ayrıca doğrulamak gerekir. Ayrıntılar: [Dağıtım notları](docs/DISTROS.md).
 
-> [!NOTE]
-> This repo is for the desktop shell of the caelestia dots. If you want installation instructions
-> for the entire dots, head to [the main repo](https://github.com/caelestia-dots/caelestia) instead.
+## Kurulum
 
-### Arch linux
-
-> [!NOTE]
-> If you want to make your own changes/tweaks to the shell do NOT edit the files installed by the AUR
-> package. Instead, follow the instructions in the [manual installation section](#manual-installation).
-
-The shell is available from the AUR as `caelestia-shell`. You can install it with an AUR helper
-like [`yay`](https://github.com/Jguer/yay) or manually downloading the PKGBUILD and running `makepkg -si`.
-
-A package following the latest commit also exists as `caelestia-shell-git`. This is bleeding edge
-and likely to be unstable/have bugs. Regular users are recommended to use the stable package
-(`caelestia-shell`).
-
-### Nix
-
-You can run the shell directly via `nix run`:
-
-```sh
-nix run github:caelestia-dots/shell
+```bash
+git clone https://github.com/aToom13/Atom-Shell.git
+cd Atom-Shell
+./install.sh --dry-run
+./install.sh
 ```
 
-Or add it to your system configuration:
+Kurucu root olarak çalıştırılmaz. Sistem paketi gerektiğinde açıkça `sudo` çağırır.
 
-```nix
-{
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+Varsayılan `merge` modu mevcut `~/.config/caelestia` ve `~/.config/hypr` değerlerini korur; yalnızca eksik şablonları ekler. Bilinen eski v2.2 `bar.status` alanı ile eski Hyprland başlatma komutları, önce tam dizin yedeği alınarak v2.3/Atom Shell biçimine otomatik taşınır. Depodaki tam masaüstü ayarlarını uygulamak için:
 
-    caelestia-shell = {
-      url = "github:caelestia-dots/shell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-}
+```bash
+./install.sh --config-mode replace
 ```
 
-The package is available as `caelestia-shell.packages.<system>.default`, which can be added to your
-`environment.systemPackages`, `users.users.<username>.packages`, `home.packages` if using home-manager,
-or a devshell. The shell can then be run via `caelestia-shell`.
+`replace`, önce iki dizini de yedekler. Diğer yararlı seçenekler:
 
-> [!TIP]
-> The default package does not have the CLI enabled by default, which is required for full funcionality.
-> To enable the CLI, use the `with-cli` package.
-
-For home-manager, you can also use the Caelestia's home manager module (explained in [configuring](https://github.com/caelestia-dots/shell?tab=readme-ov-file#home-manager-module)) that installs and configures the shell and the CLI.
-
-### Manual installation
-
-Dependencies:
-
--   [`caelestia-cli`](https://github.com/caelestia-dots/cli)
--   [`quickshell-git`](https://quickshell.outfoxxed.me) - this has to be the git version, not the latest tagged version
--   [`ddcutil`](https://github.com/rockowitz/ddcutil)
--   [`brightnessctl`](https://github.com/Hummer12007/brightnessctl)
--   [`libcava`](https://github.com/LukashonakV/cava)
--   [`networkmanager`](https://networkmanager.dev)
--   [`lm-sensors`](https://github.com/lm-sensors/lm-sensors)
--   [`fish`](https://github.com/fish-shell/fish-shell)
--   [`aubio`](https://github.com/aubio/aubio)
--   [`libpipewire`](https://pipewire.org)
--   `glibc`
--   `qt6-declarative`
--   `gcc-libs`
--   [`material-symbols`](https://fonts.google.com/icons)
--   [`caskaydia-cove-nerd`](https://www.nerdfonts.com/font-downloads)
--   [`swappy`](https://github.com/jtheoof/swappy)
--   [`libqalculate`](https://github.com/Qalculate/libqalculate)
--   [`bash`](https://www.gnu.org/software/bash)
--   `qt6-base`
--   `qt6-declarative`
-
-Build dependencies:
-
--   [`cmake`](https://cmake.org)
--   [`ninja`](https://github.com/ninja-build/ninja)
-
-To install the shell manually, install all dependencies and clone this repo to `$XDG_CONFIG_HOME/quickshell/caelestia`.
-Then simply build and install using `cmake`.
-
-```sh
-cd $XDG_CONFIG_HOME/quickshell
-git clone https://github.com/caelestia-dots/shell.git caelestia
-
-cd caelestia
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/
-cmake --build build
-sudo cmake --install build
+```text
+--dry-run                 Değişiklik yapmadan planı gösterir
+--no-packages             Paket yöneticisine dokunmaz
+--no-build                Qt/QML runtime’ını yeniden derlemez
+--profile minimal|full    Temel veya bütün entegrasyonlar
+--runtime auto|native|nix Runtime yöntemini seçer
+--install-nix             Nix yoksa resmî kurucuyu çalıştırır
+--config-mode merge|replace|skip
 ```
 
-> [!TIP]
-> You can customise the installation location via the `cmake` flags `INSTALL_LIBDIR`, `INSTALL_QMLDIR` and
-> `INSTALL_QSCONFDIR` for the libraries (the beat detector), QML plugin and Quickshell config directories
-> respectively. If changing the library directory, remember to set the `CAELESTIA_LIB_DIR` environment
-> variable to the custom directory when launching the shell.
->
-> e.g. installing to `~/.config/quickshell/caelestia` for easy local changes:
->
-> ```sh
-> mkdir -p ~/.config/quickshell/caelestia
-> cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/ -DINSTALL_QSCONFDIR=~/.config/quickshell/caelestia
-> cmake --build build
-> sudo cmake --install build
-> sudo chown -R $USER ~/.config/quickshell/caelestia
-> ```
+Debian/Ubuntu/Mint üzerinde otomatik kurulum için:
 
-## Usage
-
-The shell can be started via the `caelestia shell -d` command or `qs -c caelestia`.
-If the entire caelestia dots are installed, the shell will be autostarted on login
-via an `exec-once` in the hyprland config.
-
-### Shortcuts/IPC
-
-All keybinds are accessible via Hyprland [global shortcuts](https://wiki.hyprland.org/Configuring/Binds/#dbus-global-shortcuts).
-If using the entire caelestia dots, the keybinds are already configured for you.
-Otherwise, [this file](https://github.com/caelestia-dots/caelestia/blob/main/hypr/hyprland/keybinds.conf#L1-L39)
-contains an example on how to use global shortcuts.
-
-All IPC commands can be accessed via `caelestia shell ...`. For example
-
-```sh
-caelestia shell mpris getActive trackTitle
+```bash
+./install.sh --install-nix
 ```
 
-The list of IPC commands can be shown via `caelestia shell -s`:
+## Kullanım
 
-```
-$ caelestia shell -s
-target drawers
-  function toggle(drawer: string): void
-  function list(): string
-target notifs
-  function clear(): void
-target lock
-  function lock(): void
-  function unlock(): void
-  function isLocked(): bool
-target mpris
-  function playPause(): void
-  function getActive(prop: string): string
-  function next(): void
-  function stop(): void
-  function play(): void
-  function list(): string
-  function pause(): void
-  function previous(): void
-target picker
-  function openFreeze(): void
-  function open(): void
-target wallpaper
-  function set(path: string): void
-  function get(): string
-  function list(): string
+```bash
+atomshell start
+atomshell stop
+atomshell restart
+atomshell status
+atomshell settings
+atomshell doctor
 ```
 
-### PFP/Wallpapers
+`~/.local/bin` PATH içinde değilse shell profilinize şunu ekleyin:
 
-The profile picture for the dashboard is read from the file `~/.face`, so to set
-it you can copy your image to there or set it via the dashboard.
-
-The wallpapers for the wallpaper switcher are read from `~/Pictures/Wallpapers`
-by default. To change it, change the wallpapers path in `~/.config/caelestia/shell.json`.
-
-To set the wallpaper, you can use the command `caelestia wallpaper`. Use `caelestia wallpaper -h` for more info about
-the command.
-
-## Updating
-
-If installed via the AUR package, simply update your system (e.g. using `yay`).
-
-If installed manually, you can update by running `git pull` in `$XDG_CONFIG_HOME/quickshell/caelestia`.
-
-```sh
-cd $XDG_CONFIG_HOME/quickshell/caelestia
-git pull
+```bash
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-## Configuring
+## Güncelleme güvenliği
 
-All configuration options should be put in `~/.config/caelestia/shell.json`. This file is _not_ created by
-default, you must create it manually. Options that you omit from the config file will use their default
-values.
+Normal sistem güncellemesi Atom Shell kaynaklarını silmez:
 
-### Per-monitor configuration
+- Shell kodu kullanıcıya ait `~/.config/quickshell/caelestia` dizinindedir.
+- Yerel derlenmiş eklentiler `~/.local/share/atomshell/runtime` altında tutulur.
+- `/usr/share` ve `/etc/xdg` içindeki `caelestia-shell` paket dosyaları değiştirilmez.
+- Quickshell, kullanıcı dizinini sistemdeki `/etc/xdg/quickshell/caelestia` kopyasından önce seçer.
 
-You can configure options per-monitor in `~/.config/caelestia/monitors/<screen-name>/shell.json`. Options
-set in this file will **override** the respective options in the global config. Otherwise, the options will
-use their values from the global config.
+Qt veya Quickshell ABI değiştiğinde yerel eklentiyi yeniden derlemek gerekir. Bunu güvenli güncelleyici yapar:
 
-For example, to disable the bar on DP-1:
-
-**`~/.config/caelestia/monitors/DP-1/shell.json`**
-
-```json
-{
-    "bar": {
-        "persistent": false
-    }
-}
+```bash
+atomshell update --check
+atomshell update
 ```
 
-> [!NOTE]
-> Not all options are respect per-monitor overrides. Most notably, the following options will only read
-> from the global config, and ignore the respective option in per-monitor config files.
->
-> <details><summary>Ignored options</summary>
->
-> - `appearance` (`anim`, `transparency`)
-> - `general` (`logo`, `apps`, `idle`, `battery`)
-> - `bar.workspaces` (`perMonitorWorkspaces`, `specialWorkspaceIcons`, `windowIcons`)
-> - `bar.tray` (`iconSubs`, `hiddenIcons`)
-> - `dashboard` (`mediaUpdateInterval`, `resourceUpdateInterval`)
-> - `launcher` (`specialPrefix`, `actionPrefix`, `enableDangerousActions`, `vimKeybinds`,
->   `favouriteApps`, `hiddenApps`, `actions`)
-> - `launcher.useFuzzy` (`apps`, `actions`, `schemes`, `variants`, `wallpapers`)
-> - `notifs` (`expire`, `fullscreen`, `defaultExpireTimeout`, `fullscreenExpireTimeout`, `actionOnClick`)
-> - `lock` (`enableFprint`, `maxFprintTries`)
-> - `nexus` (`networkRescanInterval`)
-> - `utilities.toasts` (all except `fullscreen`)
-> - `utilities.vpn` (`enabled`, `provider`)
-> - `services` (`weatherLocation`, `useFahrenheit`, `useFahrenheitPerformance`, `useTwelveHourClock`,
->   `gpuType`, `visualiserBars`, `audioIncrement`, `brightnessIncrement`, `maxVolume`, `smartScheme`,
->   `defaultPlayer`, `playerAliases`, `lyricsBackend`)
-> - `paths` (`wallpaperDir`, `lyricsDir`)
->
-> </details>
+Güncelleyici kirli Git çalışma ağacında ilerlemez, yalnızca fast-forward kabul eder, smoke testini çalıştırır ve kurulumu yedekleyerek yeniler.
 
-### Example configuration
+Shell’i doğrudan `qs -c caelestia` veya `caelestia shell` ile açmayın: sistemde v2.2 paketi kalmışsa v2.3 ayarlarını eski plugin ile yükler ve `Unknown option bar.statusIcons` uyarısı verir. `atomshell start/restart` her zaman projeye ait doğru runtime’ı seçer.
 
-> [!NOTE]
-> The example configuration includes ALL configuration options in `shell.json`. You are
-> **not** recommended to copy and paste this entire configuration into `shell.json`.
-> This is meant to serve as a reference of all the available options, and you should
-> only add the ones you want to change to `shell.json`.
+## Yedek, geri alma ve kaldırma
 
-<details><summary>Example</summary>
+Yedekler burada tutulur:
 
-```json
-{
-    "enabled": true,
-    "appearance": {
-        "deformScale": 1,
-        "rounding": {
-            "scale": 1
-        },
-        "spacing": {
-            "scale": 1
-        },
-        "padding": {
-            "scale": 1
-        },
-        "font": {
-            "scale": 1,
-            "clock": "Rubik",
-            "workspaces": "Rubik",
-            "headline": {
-                "family": "GoogleSansFlex",
-                "large": { "size": 32, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "medium": { "size": 28, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "small": { "size": 24, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } }
-            },
-            "title": {
-                "family": "GoogleSansFlex",
-                "large": { "size": 22, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "medium": { "size": 16, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "small": { "size": 14, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } }
-            },
-            "body": {
-                "family": "GoogleSansFlex",
-                "large": { "size": 16, "weight": 400, "italic": false, "vaxes": { "ROND": 25 } },
-                "medium": { "size": 14, "weight": 400, "italic": false, "vaxes": { "ROND": 25 } },
-                "small": { "size": 12, "weight": 400, "italic": false, "vaxes": { "ROND": 25 } }
-            },
-            "label": {
-                "family": "GoogleSansFlex",
-                "large": { "size": 14, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "medium": { "size": 12, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "small": { "size": 11, "weight": 400, "italic": false, "vaxes": { "ROND": 25 } }
-            },
-            "mono": {
-                "family": "CaskaydiaCove NF",
-                "large": { "size": 16, "weight": 400, "italic": false, "vaxes": {} },
-                "medium": { "size": 14, "weight": 400, "italic": false, "vaxes": {} },
-                "small": { "size": 12, "weight": 400, "italic": false, "vaxes": {} }
-            },
-            "icon": {
-                "family": "Material Symbols Rounded",
-                "extraLarge": { "size": 36, "weight": 400, "italic": false, "vaxes": {} },
-                "large": { "size": 24, "weight": 400, "italic": false, "vaxes": {} },
-                "medium": { "size": 18, "weight": 400, "italic": false, "vaxes": {} },
-                "small": { "size": 15, "weight": 400, "italic": false, "vaxes": {} }
-            }
-        },
-        "anim": {
-            "durations": {
-                "scale": 1
-            }
-        },
-        "transparency": {
-            "enabled": false,
-            "base": 0.85,
-            "layers": 0.4
-        }
-    },
-    "general": {
-        "logo": "",
-        "showOverFullscreen": false,
-        "mediaGifSpeedAdjustment": 300,
-        "sessionGifSpeed": 0.7,
-        "apps": {
-            "terminal": ["foot"],
-            "audio": ["pavucontrol"],
-            "playback": ["mpv"],
-            "explorer": ["thunar"]
-        },
-        "idle": {
-            "lockBeforeSleep": true,
-            "inhibitWhenAudio": true,
-            "inhibitWhenCharging": false,
-            "timeouts": [
-                {
-                    "timeout": 180,
-                    "idleAction": "lock",
-                    "inhibitWhenAudio": false,
-                    "inhibitWhenCharging": false,
-                    "respectInhibitors": true
-                },
-                {
-                    "timeout": 300,
-                    "idleAction": "dpms off",
-                    "returnAction": "dpms on"
-                },
-                {
-                    "timeout": 600,
-                    "idleAction": ["suspendThenHibernate"]
-                }
-            ]
-        },
-        "battery": {
-            "warnLevels": [
-                {
-                    "level": 20,
-                    "title": "Low battery",
-                    "message": "You might want to plug in a charger",
-                    "icon": "battery_android_frame_2"
-                },
-                {
-                    "level": 10,
-                    "title": "Did you see the previous message?",
-                    "message": "You should probably plug in a charger <b>now</b>",
-                    "icon": "battery_android_frame_1"
-                },
-                {
-                    "level": 5,
-                    "title": "Critical battery level",
-                    "message": "PLUG THE CHARGER RIGHT NOW!!",
-                    "icon": "battery_android_alert",
-                    "critical": true
-                }
-            ],
-            "criticalLevel": 3
-        }
-    },
-    "background": {
-        "enabled": true,
-        "wallpaperEnabled": true,
-        "desktopClock": {
-            "enabled": false,
-            "scale": 1.0,
-            "position": "bottom-right",
-            "invertColors": false,
-            "background": {
-                "enabled": false,
-                "opacity": 0.7,
-                "blur": true
-            },
-            "shadow": {
-                "enabled": true,
-                "opacity": 0.7,
-                "blur": 0.4
-            }
-        },
-        "visualiser": {
-            "enabled": false,
-            "autoHide": true,
-            "blur": false,
-            "rounding": 1,
-            "spacing": 1
-        }
-    },
-    "bar": {
-        "persistent": true,
-        "showOnHover": true,
-        "dragThreshold": 20,
-        "scrollActions": {
-            "workspaces": true,
-            "volume": true,
-            "brightness": true
-        },
-        "popouts": {
-            "activeWindow": true,
-            "tray": true,
-            "statusIcons": true
-        },
-        "workspaces": {
-            "shown": 5,
-            "activeIndicator": true,
-            "occupiedBg": false,
-            "showWindows": true,
-            "showWindowsOnSpecialWorkspaces": true,
-            "maxWindowIcons": 5,
-            "activeTrail": false,
-            "perMonitorWorkspaces": true,
-            "label": "  ",
-            "occupiedLabel": "󰮯",
-            "activeLabel": "󰮯",
-            "capitalisation": "preserve",
-            "specialWorkspaceIcons": [
-                {
-                    "name": "steam",
-                    "icon": "sports_esports"
-                }
-            ],
-            "windowIcons": [
-                {
-                    "regex": "steam(_app_(default|[0-9]+))?",
-                    "icon": "sports_esports"
-                }
-            ]
-        },
-        "activeWindow": {
-            "compact": false,
-            "inverted": false,
-            "showOnHover": true
-        },
-        "tray": {
-            "background": false,
-            "recolour": false,
-            "compact": false,
-            "iconSubs": [],
-            "hiddenIcons": []
-        },
-        "clock": {
-            "background": false,
-            "showDate": false,
-            "showIcon": true
-        },
-        "statusIcons": [
-            {
-                "id": "lockStatus",
-                "enabled": true
-            },
-            {
-                "id": "audio",
-                "enabled": false
-            },
-            {
-                "id": "microphone",
-                "enabled": false
-            },
-            {
-                "id": "kbLayout",
-                "enabled": false
-            },
-            {
-                "id": "network",
-                "enabled": true
-            },
-            {
-                "id": "bluetooth",
-                "enabled": true
-            },
-            {
-                "id": "battery",
-                "enabled": true
-            }
-        ],
-        "entries": [
-            {
-                "id": "logo",
-                "enabled": true
-            },
-            {
-                "id": "workspaces",
-                "enabled": true
-            },
-            {
-                "id": "spacer",
-                "enabled": true
-            },
-            {
-                "id": "activeWindow",
-                "enabled": true
-            },
-            {
-                "id": "spacer",
-                "enabled": true
-            },
-            {
-                "id": "tray",
-                "enabled": true
-            },
-            {
-                "id": "clock",
-                "enabled": true
-            },
-            {
-                "id": "statusIcons",
-                "enabled": true
-            },
-            {
-                "id": "power",
-                "enabled": true
-            }
-        ],
-        "excludedScreens": []
-    },
-    "border": {
-        "thickness": 10,
-        "rounding": 25,
-        "smoothing": 20
-    },
-    "dashboard": {
-        "enabled": true,
-        "showOnHover": true,
-        "showDashboard": true,
-        "showMedia": true,
-        "showPerformance": true,
-        "showWeather": true,
-        "mediaUpdateInterval": 500,
-        "resourceUpdateInterval": 1000,
-        "dragThreshold": 50,
-        "performance": {
-            "showBattery": true,
-            "showGpu": true,
-            "showCpu": true,
-            "showMemory": true,
-            "showStorage": true,
-            "showNetwork": true
-        }
-    },
-    "launcher": {
-        "enabled": true,
-        "showOnHover": false,
-        "maxShown": 7,
-        "maxWallpapers": 9,
-        "specialPrefix": "@",
-        "actionPrefix": ">",
-        "enableDangerousActions": false,
-        "dragThreshold": 50,
-        "vimKeybinds": false,
-        "favouriteApps": [],
-        "hiddenApps": [],
-        "useFuzzy": {
-            "apps": false,
-            "actions": false,
-            "schemes": false,
-            "variants": false,
-            "wallpapers": false
-        },
-        "actions": [
-            {
-                "name": "Calculator",
-                "icon": "calculate",
-                "description": "Do simple math equations (powered by Qalc)",
-                "command": ["autocomplete", "calc"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Scheme",
-                "icon": "palette",
-                "description": "Change the current colour scheme",
-                "command": ["autocomplete", "scheme"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Wallpaper",
-                "icon": "image",
-                "description": "Change the current wallpaper",
-                "command": ["autocomplete", "wallpaper"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Variant",
-                "icon": "colors",
-                "description": "Change the current scheme variant",
-                "command": ["autocomplete", "variant"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Random",
-                "icon": "casino",
-                "description": "Switch to a random wallpaper",
-                "command": ["caelestia", "wallpaper", "-r"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Light",
-                "icon": "light_mode",
-                "description": "Change the scheme to light mode",
-                "command": ["setMode", "light"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Dark",
-                "icon": "dark_mode",
-                "description": "Change the scheme to dark mode",
-                "command": ["setMode", "dark"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Shutdown",
-                "icon": "power_settings_new",
-                "description": "Shutdown the system",
-                "command": ["poweroff"],
-                "enabled": true,
-                "dangerous": true
-            },
-            {
-                "name": "Reboot",
-                "icon": "cached",
-                "description": "Reboot the system",
-                "command": ["reboot"],
-                "enabled": true,
-                "dangerous": true
-            },
-            {
-                "name": "Logout",
-                "icon": "exit_to_app",
-                "description": "Log out of the current session",
-                "command": ["logout"],
-                "enabled": true,
-                "dangerous": true
-            },
-            {
-                "name": "Lock",
-                "icon": "lock",
-                "description": "Lock the current session",
-                "command": ["loginctl", "lock-session"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Sleep",
-                "icon": "bedtime",
-                "description": "Suspend then hibernate",
-                "command": ["suspendThenHibernate"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Settings",
-                "icon": "settings",
-                "description": "Configure the shell",
-                "command": ["caelestia", "shell", "nexus", "open"],
-                "enabled": true,
-                "dangerous": false
-            }
-        ]
-    },
-    "lock": {
-        "enabled": true,
-        "useWallpaper": false,
-        "recolourLogo": true,
-        "enableFprint": true,
-        "maxFprintTries": 3,
-        "enableHowdy": true,
-        "maxHowdyTries": 3,
-        "triggerHowdyOnWake": true,
-        "hideNotifs": false
-    },
-    "nexus": {
-        "wallpapersPerRow": 4,
-        "networkRescanInterval": 15000
-    },
-    "notifs": {
-        "expire": true,
-        "fullscreen": "on",
-        "defaultExpireTimeout": 5000,
-        "fullscreenExpireTimeout": 2000,
-        "clearThreshold": 0.3,
-        "expandThreshold": 20,
-        "actionOnClick": false,
-        "groupPreviewNum": 3,
-        "openExpanded": false
-    },
-    "osd": {
-        "enabled": true,
-        "hideDelay": 2000,
-        "enableBrightness": true,
-        "enableMicrophone": false
-    },
-    "services": {
-        "weatherLocation": "",
-        "useFahrenheit": false,
-        "useFahrenheitPerformance": false,
-        "useTwelveHourClock": false,
-        "gpuType": "",
-        "visualiserBars": 60,
-        "audioIncrement": 0.1,
-        "brightnessIncrement": 0.1,
-        "maxVolume": 1.0,
-        "smartScheme": true,
-        "defaultPlayer": "Spotify",
-        "playerAliases": [{ "from": "com.github.th_ch.youtube_music", "to": "YT Music" }],
-        "lyricsBackend": "Auto"
-    },
-    "session": {
-        "enabled": true,
-        "dragThreshold": 30,
-        "vimKeybinds": false,
-        "icons": {
-            "logout": "logout",
-            "shutdown": "power_settings_new",
-            "hibernate": "downloading",
-            "reboot": "cached"
-        },
-        "commands": {
-            "logout": ["logout"],
-            "shutdown": ["poweroff"],
-            "hibernate": ["hibernate"],
-            "reboot": ["reboot"]
-        }
-    },
-    "sidebar": {
-        "enabled": true,
-        "showOnHover": false,
-        "minHoverThreshold": 200,
-        "dragThreshold": 80
-    },
-    "utilities": {
-        "enabled": true,
-        "maxToasts": 4,
-        "toasts": {
-            "fullscreen": "off",
-            "configLoaded": true,
-            "chargingChanged": true,
-            "gameModeChanged": true,
-            "dndChanged": true,
-            "audioOutputChanged": true,
-            "audioInputChanged": true,
-            "capsLockChanged": true,
-            "numLockChanged": true,
-            "kbLayoutChanged": true,
-            "kbLimit": true,
-            "vpnChanged": true,
-            "nowPlaying": false
-        },
-        "vpn": {
-            "enabled": false,
-            "provider": [
-                {
-                    "name": "wireguard",
-                    "interface": "your-connection-name",
-                    "displayName": "Wireguard (Your VPN)",
-                    "enabled": false
-                }
-            ]
-        },
-        "quickToggles": [
-            {
-                "id": "wifi",
-                "enabled": true
-            },
-            {
-                "id": "bluetooth",
-                "enabled": true
-            },
-            {
-                "id": "mic",
-                "enabled": true
-            },
-            {
-                "id": "settings",
-                "enabled": true
-            },
-            {
-                "id": "gameMode",
-                "enabled": true
-            },
-            {
-                "id": "dnd",
-                "enabled": true
-            },
-            {
-                "id": "vpn",
-                "enabled": false
-            }
-        ]
-    },
-    "paths": {
-        "wallpaperDir": "~/Pictures/Wallpapers",
-        "lyricsDir": "~/Music/lyrics/",
-        "sessionGif": "root:/assets/kurukuru.gif",
-        "mediaGif": "root:/assets/bongocat.gif",
-        "noNotifsPic": "root:/assets/dino.png",
-        "lockNoNotifsPic": "root:/assets/dino.png"
-    }
-}
+```text
+~/.local/state/atomshell/backups/YYYYMMDD-HHMMSS[-N]/
 ```
 
-</details>
+Bir yedeği listelemek veya geri yüklemek için:
 
-### Advanced configuration
-
-> [!WARNING]
-> Do NOT change any of these options if you do not know what you are doing. These options control the
-> tokens used internally within the shell, and can cause visual issues if changed. The existence of
-> the options are also not guaranteed across versions, and may change or be removed without notice.
-
-A separate `~/.config/caelestia/shell-tokens.json` file allows editing the internal tokens without
-touching the source code of the shell. These tokens affect, for example, individual rounding,
-spacing, padding, font size, animation duration and easing curves tokens, and the sizes of certain
-components. The appearance scale values in `shell.json` are multiplied against these base
-token values to produce the final computed values.
-
-Per-monitor token overrides are also available at
-`~/.config/caelestia/monitors/<screen-name>/shell-tokens.json`.
-
-### Home Manager Module
-
-For NixOS users, a home manager module is also available.
-
-<details><summary><code>home.nix</code></summary>
-
-```nix
-programs.caelestia = {
-  enable = true;
-  systemd = {
-    enable = false; # if you prefer starting from your compositor
-    target = "graphical-session.target";
-    environment = [];
-  };
-  settings = {
-    bar.statusIcons = [
-      { id = "lockStatus"; enabled = true; }
-      { id = "network"; enabled = true; }
-      { id = "bluetooth"; enabled = true; }
-      { id = "battery"; enabled = false; }
-    ];
-    paths.wallpaperDir = "~/Images";
-  };
-  cli = {
-    enable = true; # Also add caelestia-cli to path
-    settings = {
-      theme.enableGtk = false;
-    };
-  };
-};
+```bash
+./rollback.sh
+./rollback.sh ~/.local/state/atomshell/backups/20260813-150000
 ```
 
-The module automatically adds Caelestia shell to the path with **full functionality**. The CLI is not required, however you have the option to enable and configure it.
+Kaldırma kullanıcı ayarlarını varsayılan olarak korur:
 
-</details>
-
-## FAQ
-
-### Need help or support?
-
-You can join the community Discord server for assistance and discussion:
-https://discord.gg/BGDCFCmMBk
-
-### My screen is flickering, help pls!
-
-Try disabling VRR in the hyprland config. You can do this by adding the following to `~/.config/caelestia/hypr-user.conf`:
-
-```conf
-misc {
-    vrr = 0
-}
+```bash
+atomshell uninstall
+atomshell uninstall --purge-config
 ```
 
-### I want to make my own changes to the hyprland config!
+Kurucunun yüklediği sistem paketleri otomatik kaldırılmaz; başka masaüstü bileşenleri de onları kullanabilir.
 
-You can add your custom hyprland configs to `~/.config/caelestia/hypr-user.conf`.
+## Dizin yapısı
 
-### I want to make my own changes to other stuff!
-
-See the [manual installation](https://github.com/caelestia-dots/shell?tab=readme-ov-file#manual-installation) section
-for the corresponding repo.
-
-### I want to disable XXX feature!
-
-Please read the [configuring](https://github.com/caelestia-dots/shell?tab=readme-ov-file#configuring) section in the readme.
-If there is no corresponding option, make feature request.
-
-### How do I make my colour scheme change with my wallpaper?
-
-Set a wallpaper via the launcher or `caelestia wallpaper` and set the scheme to the dynamic scheme via the launcher
-or `caelestia scheme set`. e.g.
-
-```sh
-caelestia wallpaper -f <path/to/file>
-caelestia scheme set -n dynamic
+```text
+assets/, components/, modules/, services/, utils/  Shell kaynakları
+plugin/, extras/                                    Derlenen Caelestia uyumluluk modülleri
+config/caelestia/                                   Taşınabilir shell ayar şablonları
+config/hypr/                                        Hyprland Lua yapılandırması ve yardımcılar
+scripts/                                            Kurulum altyapısı
+docs/                                               Mimari ve dağıtım belgeleri
+tests/                                              Statik ve dry-run testleri
 ```
 
-### My wallpapers aren't showing up in the launcher!
+Geliştirme ve upstream birleştirme: [CONTRIBUTING.md](CONTRIBUTING.md). Güvenlik modeli: [SECURITY.md](SECURITY.md).
 
-The launcher pulls wallpapers from `~/Pictures/Wallpapers` by default. You can change this in the config. Additionally,
-the launcher only shows an odd number of wallpapers at one time. If you only have 2 wallpapers, consider getting more
-(or just putting one).
+## Kaynak ve lisans
 
-## Credits
+Atom Shell, GPL-3.0-only lisanslı [Caelestia Shell](https://github.com/caelestia-dots/shell) projesinden türetilmiştir ve aynı lisansla dağıtılır. Orijinal proje ve katkıcılarının telif hakları korunur. Ayrıntı için [LICENSE](LICENSE) dosyasına bakın.
 
-Thanks to the Hyprland discord community (especially the homies in #rice-discussion) for all the help and suggestions
-for improving these dots!
+---
 
-A special thanks to [@outfoxxed](https://github.com/outfoxxed) for making Quickshell and the effort put into fixing issues
-and implementing various feature requests.
+## English summary
 
-Another special thanks to [@end_4](https://github.com/end-4) for his [config](https://github.com/end-4/dots-hyprland)
-which helped me a lot with learning how to use Quickshell.
-
-Finally another thank you to all the configs I took inspiration from (only one for now):
-
--   [Axenide/Ax-Shell](https://github.com/Axenide/Ax-Shell)
-
-## Stonks 📈
-
-<a href="https://www.star-history.com/#caelestia-dots/shell&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=caelestia-dots/shell&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=caelestia-dots/shell&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=caelestia-dots/shell&type=Date" />
- </picture>
-</a>
+Atom Shell is an independent, GPL-3.0-only desktop-shell fork based on Caelestia Shell v2.3. It keeps the shell source in the user configuration directory, isolates compiled plugins in a user-owned runtime, and provides safe install, update, backup, rollback and uninstall commands. Arch/CachyOS use a native runtime; Debian/Ubuntu/Mint use Nix for a consistent modern Qt/Quickshell stack. Existing Hyprland and Caelestia settings are preserved by default.

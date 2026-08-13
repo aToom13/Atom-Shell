@@ -22,6 +22,18 @@ Searcher {
     property bool previewColourLock
     property bool pendingPreviewClear
 
+    readonly property list<string> videoExtensions: [".mp4", ".webm", ".mkv", ".mov", ".m4v"]
+
+    function isVideo(path: string): bool {
+        if (!path)
+            return false;
+        const lower = path.toLowerCase();
+        for (const ext of root.videoExtensions)
+            if (lower.endsWith(ext))
+                return true;
+        return false;
+    }
+
     function getCategoryFor(w: FileSystemEntry): string {
         let category = w.parentDir.slice(Paths.wallsdir.length + 1);
         if (category.includes("/"))
@@ -108,7 +120,11 @@ Searcher {
 
         recursive: true
         path: Paths.wallsdir
-        filter: FileSystemModel.Images
+        filter: FileSystemModel.Files
+        nameFilters: [
+            "*.jpg", "*.jpeg", "*.png", "*.webp", "*.gif", "*.tif", "*.tiff",
+            "*.mp4", "*.webm", "*.mkv", "*.mov", "*.m4v"
+        ]
     }
 
     Process {

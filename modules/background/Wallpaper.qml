@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtMultimedia
 import Caelestia.Config
 import qs.components
 import qs.components.filedialog
@@ -12,25 +13,43 @@ Item {
     id: root
 
     property string source: Wallpapers.current
-    property CachingImage current
+    property var current
     property bool completed
 
-    onSourceChanged: {
-        if (!source)
-            current = null;
+    function isVideo(path: string): bool {
+        if (!path)
+            return false;
+        const lower = path.toLowerCase();
+        return lower.endsWith(".mp4") || lower.endsWith(".webm") || lower.endsWith(".mkv")
+            || lower.endsWith(".mov") || lower.endsWith(".m4v");
+    }
+
+    function spawn() {
+        if (root.current) {
+            const stale = root.current;
+            root.current = null;
+            stale.destroy();
+        }
+
+        if (!root.source)
+            return;
+
+        if (root.isVideo(root.source))
+            root.current = videoComp.createObject(root, { source: root.source });
         else
-            current = imgComp.createObject(this, {
-                path: source
-            });
+            root.current = imgComp.createObject(root, { path: root.source });
+    }
+
+    onSourceChanged: {
+        if (root.completed)
+            root.spawn();
     }
 
     Component.onCompleted: {
         if (source)
             Qt.callLater(() => {
-                current = imgComp.createObject(this, {
-                    path: source
-                });
-                completed = true;
+                root.spawn();
+                root.completed = true;
             });
     }
 
@@ -128,6 +147,74 @@ Item {
                 running: root.current !== img && root.current?.status === Image.Ready
                 interval: anim.duration
                 onTriggered: img.destroy()
+            }
+        }
+    }
+
+    Component {
+        id: videoComp
+
+        Item {
+            id: vroot
+
+            property string source
+
+            anchors.fill: parent
+
+            Video {
+                id: vid
+
+                anchors.fill: parent
+
+                source: Qt.resolvedUrl(vroot.source)
+                autoPlay: true
+                loops: MediaPlayer.Infinite
+                muted: true
+                playbackRate: 1
+                fillMode: VideoOutput.PreserveAspectCrop
+
+                Connections {
+                    target: GameMode
+
+                    function onEnabledChanged(): void {
+                        if (GameMode.enabled)
+                            vid.pause();
+                        else
+                            vid.play();
+                    }
+                }
+
+                Component.onCompleted: {
+                    if (GameMode.enabled)
+                        vid.pause();
+                }
+
+                opacity: 0
+
+                NumberAnimation on opacity {
+                    id: fadeIn
+
+                    running: false
+                    from: 0
+                    to: 1
+                    duration: 600
+                    easing.type: Easing.InOutQuad
+                }
+
+                onPlaybackStateChanged: {
+                    if (vid.playbackState === MediaPlayer.PlayingState)
+                        fadeIn.start();
+                }
+
+                Timer {
+                    interval: 500
+                    running: true
+                    repeat: false
+                    onTriggered: {
+                        if (vid.visible && fadeIn.running === false)
+                            fadeIn.start();
+                    }
+                }
             }
         }
     }

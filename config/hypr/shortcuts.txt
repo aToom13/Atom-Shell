@@ -1,0 +1,89 @@
+═══════════════════════════════════════════
+  CAELESTIA + HYPRLAND — KLAVYE KISAYOLLARI
+═══════════════════════════════════════════
+
+📱 UYGULAMALAR
+  SUPER + W          → Tarayıcı (Zen Browser)
+  SUPER + T          → Terminal (kitty)
+  SUPER + C          → Editör (VSCodium)
+  SUPER + E          → Dosya yöneticisi (Dolphin)
+  SUPER + SUPER_L    → Uygulama başlatıcı (Launcher)
+  CTRL + ALT + V     → Ses ayarları (pavucontrol)
+
+  SUPER + Tab        → Pencere önizleme (tüm workspace'ler)
+
+🪟 PENCERE YÖNETİMİ
+  SUPER + Q          → Pencereyi kapat
+  SUPER + F          → Tam ekran
+  SUPER + ALT + F    → Borderlı tam ekran (maximized)
+  SUPER + ALT + Space → Floating/tile geçişi
+  SUPER + P          → Pencereyi sabitle (pin)
+  SUPER + ALT + \    → Picture-in-Picture
+  SUPER + Z          → Pencereyi sürükle
+  SUPER + X          → Pencereyi boyutlandır
+  SUPER + yön tuşları → Odağı yöne taşı
+  SUPER + SHIFT + yön → Pencereyi yöne taşı
+  SUPER + -/=        → Pencereyi daralt/genişlet
+  SUPER + SHIFT + -/= → Pencereyi kısalt/uzat
+
+🔲 WORKSPACE
+  SUPER + 0-9        → Workspace'e git
+  SUPER + ALT + 0-9 → Pencereyi workspace'e taşı
+  SUPER + tekerlek   → Önceki/sonraki workspace
+  CTRL + SUPER + ←/→ → Önceki/sonraki workspace
+
+🗂️ GRUP (SEKMELER)
+  ALT + TAB          → Sonraki grup penceresi
+  SHIFT + ALT + TAB  → Önceki grup penceresi
+  SUPER + ,          → Grubu aç/kapa
+  SUPER + U          → Gruptan çıkar
+
+🔄 SPECIAL WORKSPACE'LER
+  SUPER + S          → Special workspace
+  SUPER + D          → İletişim (Equibop/Discord)
+  SUPER + M          → Müzik (Spotify)
+  SUPER + R          → Todo
+  CTRL + SHIFT + Esc → Sistem monitörü
+
+📸 EKRAN GÖRÜNTÜSÜ & KAYIT
+  Print              → Tam ekran SS (kaydet + clipboard)
+  SUPER + SHIFT + S  → Bölge SS (donma efektli)
+  SUPER + SHIFT + ALT + S → Bölge SS
+  SUPER + ALT + R    → Kayıt başlat
+  CTRL + ALT + R     → Kayıt (alternatif)
+  SUPER + SHIFT + ALT + R → Kaydı durdur
+  SUPER + SHIFT + C  → Renk seçici
+
+🛠️ SİSTEM
+  ALT + F4           → Güç menüsü (kapat/yeniden başlat)
+  CTRL + ALT + Delete → Güç menüsü
+  SUPER + L          → Ekranı kilitle
+  SUPER + SHIFT + L  → Uyku
+  SUPER + N          → Sidebar
+  SUPER + K          → Tüm panelleri göster
+  CTRL + ALT + C     → Bildirimleri temizle
+  SUPER + V          → Pano geçmişi
+  SUPER + .          → Emoji seçici
+
+🎵 MEDYA
+  XF86AudioPlay      → Oynat/Duraklat
+  XF86AudioNext      → Sonraki parça
+  XF86AudioPrev      → Önceki parça
+  XF86AudioRaiseVolume → Ses aç
+  XF86AudioLowerVolume → Ses kıs
+  XF86AudioMute      → Sesi kapat/aç
+
+🔆 PARLAKLIK
+  XF86MonBrightnessUp   → Parlaklık arttır
+  XF86MonBrightnessDown → Parlaklık azalt
+
+🖱️ FARE
+  SUPER + sol tık   → Pencereyi sürükle
+  SUPER + sağ tık   → Pencereyi boyutlandır
+  SUPER + tekerlek   → Workspace değiştir
+
+👆 TOUCHPAD
+  4 parmak → sağa/sola → Workspace değiştir
+  3 parmak → yukarı    → Special workspace
+  3 parmak → aşağı     → Special workspace aç/kapa
+  4 parmak → aşağı     → Uyku

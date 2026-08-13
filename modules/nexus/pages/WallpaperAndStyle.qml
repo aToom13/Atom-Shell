@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtMultimedia
 import Caelestia.Components
 import Caelestia.Config
 import qs.components
@@ -12,6 +13,23 @@ import qs.modules.nexus.common
 
 PageBase {
     id: root
+
+    readonly property list<MenuItem> clockPositionItems: [
+        MenuItem { text: qsTr("Top left") }, MenuItem { text: qsTr("Top") }, MenuItem { text: qsTr("Top right") },
+        MenuItem { text: qsTr("Left") }, MenuItem { text: qsTr("Centre") }, MenuItem { text: qsTr("Right") },
+        MenuItem { text: qsTr("Bottom left") }, MenuItem { text: qsTr("Bottom") }, MenuItem { text: qsTr("Bottom right") }
+    ]
+    readonly property list<string> clockPositionValues: ["top-left", "top", "top-right", "left", "center", "right", "bottom-left", "bottom", "bottom-right"]
+
+    function setUiFont(family: string): void {
+        const value = family.trim();
+        if (!value)
+            return;
+        GlobalConfig.appearance.font.headline.family = value;
+        GlobalConfig.appearance.font.title.family = value;
+        GlobalConfig.appearance.font.body.family = value;
+        GlobalConfig.appearance.font.label.family = value;
+    }
 
     title: qsTr("Wallpaper & style")
 
@@ -123,12 +141,20 @@ PageBase {
                     id: wallImg
 
                     anchors.fill: parent
-                    source: Wallpapers.current
+                    visible: !Wallpapers.isVideo(Wallpapers.current)
+                    source: visible ? Wallpapers.current : ""
                     preventInit: wallIndicatorLoader.opacity > 0
                     fadeOutAnim: Anim.DefaultEffects
                     fadeInAnim: Anim.SlowEffects
 
-                    onSourceChanged: wallLoadDebounceTimer.restart()
+                    onSourceChanged: {
+                        if (visible)
+                            wallLoadDebounceTimer.restart();
+                        else {
+                            wallLoadDebounceTimer.stop();
+                            wallIndicatorLoader.opacity = 0;
+                        }
+                    }
 
                     onStatusChanged: {
                         if (status === Image.Ready) {
@@ -136,6 +162,16 @@ PageBase {
                             wallIndicatorLoader.opacity = 0;
                         }
                     }
+                }
+
+                Video {
+                    anchors.fill: parent
+                    visible: Wallpapers.isVideo(Wallpapers.current)
+                    source: visible ? Qt.resolvedUrl(Wallpapers.current) : ""
+                    autoPlay: visible
+                    loops: MediaPlayer.Infinite
+                    muted: true
+                    fillMode: VideoOutput.PreserveAspectCrop
                 }
             }
         }
@@ -189,10 +225,229 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
 
-            last: true
             text: qsTr("Dark theme")
             checked: !Colours.light
             onToggled: Colours.setMode(checked ? "dark" : "light")
+        }
+
+        SectionHeader { text: qsTr("Shell appearance") }
+
+        StepperRow {
+            first: true
+            label: qsTr("Text scale")
+            subtext: qsTr("Scale fonts across the shell")
+            value: Config.appearance.font.scale
+            from: 0.75
+            to: 2
+            stepSize: 0.05
+            onMoved: v => GlobalConfig.appearance.font.scale = v
+        }
+
+        StepperRow {
+            label: qsTr("Rounding scale")
+            value: Config.appearance.rounding.scale
+            from: 0
+            to: 2
+            stepSize: 0.1
+            onMoved: v => GlobalConfig.appearance.rounding.scale = v
+        }
+
+        StepperRow {
+            label: qsTr("Spacing scale")
+            value: Config.appearance.spacing.scale
+            from: 0.5
+            to: 2
+            stepSize: 0.1
+            onMoved: v => GlobalConfig.appearance.spacing.scale = v
+        }
+
+        StepperRow {
+            label: qsTr("Padding scale")
+            value: Config.appearance.padding.scale
+            from: 0.5
+            to: 2
+            stepSize: 0.1
+            onMoved: v => GlobalConfig.appearance.padding.scale = v
+        }
+
+        StepperRow {
+            label: qsTr("Base transparency")
+            value: Math.round(GlobalConfig.appearance.transparency.base * 100)
+            from: 20
+            to: 100
+            stepSize: 5
+            onMoved: v => GlobalConfig.appearance.transparency.base = v / 100
+        }
+
+        StepperRow {
+            label: qsTr("Layer transparency")
+            value: Math.round(GlobalConfig.appearance.transparency.layers * 100)
+            from: 0
+            to: 100
+            stepSize: 5
+            onMoved: v => GlobalConfig.appearance.transparency.layers = v / 100
+        }
+
+        StepperRow {
+            last: true
+            label: qsTr("Animation speed")
+            subtext: qsTr("Scale shell animation durations")
+            value: GlobalConfig.appearance.anim.durations.scale
+            from: 0
+            to: 3
+            stepSize: 0.1
+            onMoved: v => GlobalConfig.appearance.anim.durations.scale = v
+        }
+
+        SectionHeader { text: qsTr("Fonts") }
+
+        ConnectedRect {
+            Layout.fillWidth: true
+            first: true
+            last: true
+            implicitHeight: fontLayout.implicitHeight + Tokens.padding.large * 2
+            ColumnLayout {
+                id: fontLayout
+                anchors.fill: parent
+                anchors.margins: Tokens.padding.large
+                spacing: Tokens.spacing.medium
+                StyledTextField {
+                    Layout.fillWidth: true
+                    placeholderText: qsTr("Interface font family")
+                    leadingIcon: "font_download"
+                    text: Config.appearance.font.body.family
+                    supportingText: qsTr("Applied to headings, titles, body and labels")
+                    onAccepted: root.setUiFont(text)
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Tokens.spacing.medium
+                    StyledTextField { Layout.fillWidth: true; placeholderText: qsTr("Monospace font"); text: Config.appearance.font.mono.family; onAccepted: GlobalConfig.appearance.font.mono.family = text.trim() }
+                    StyledTextField { Layout.fillWidth: true; placeholderText: qsTr("Clock font"); text: Config.appearance.font.clock; onAccepted: GlobalConfig.appearance.font.clock = text.trim() }
+                    StyledTextField { Layout.fillWidth: true; placeholderText: qsTr("Workspace font"); text: Config.appearance.font.workspaces; onAccepted: GlobalConfig.appearance.font.workspaces = text.trim() }
+                }
+            }
+        }
+
+        SectionHeader {
+            text: qsTr("Desktop clock")
+        }
+
+        ToggleRow {
+            first: true
+            text: qsTr("Show desktop clock")
+            checked: Config.background.desktopClock.enabled
+            onToggled: GlobalConfig.background.desktopClock.enabled = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Clock background")
+            checked: Config.background.desktopClock.background.enabled
+            onToggled: GlobalConfig.background.desktopClock.background.enabled = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Blur behind clock")
+            checked: Config.background.desktopClock.background.blur
+            onToggled: GlobalConfig.background.desktopClock.background.blur = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Clock shadow")
+            checked: Config.background.desktopClock.shadow.enabled
+            onToggled: GlobalConfig.background.desktopClock.shadow.enabled = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Invert clock colours")
+            checked: Config.background.desktopClock.invertColors
+            onToggled: GlobalConfig.background.desktopClock.invertColors = checked
+        }
+
+        SelectRow {
+            label: qsTr("Clock position")
+            menuItems: root.clockPositionItems
+            active: root.clockPositionItems[Math.max(0, root.clockPositionValues.indexOf(Config.background.desktopClock.position))]
+            onSelected: item => GlobalConfig.background.desktopClock.position = root.clockPositionValues[root.clockPositionItems.indexOf(item)]
+        }
+
+        StepperRow {
+            label: qsTr("Clock background opacity")
+            value: Math.round(Config.background.desktopClock.background.opacity * 100)
+            from: 0
+            to: 100
+            stepSize: 5
+            onMoved: v => GlobalConfig.background.desktopClock.background.opacity = v / 100
+        }
+
+        StepperRow {
+            label: qsTr("Clock shadow opacity")
+            value: Math.round(Config.background.desktopClock.shadow.opacity * 100)
+            from: 0
+            to: 100
+            stepSize: 5
+            onMoved: v => GlobalConfig.background.desktopClock.shadow.opacity = v / 100
+        }
+
+        StepperRow {
+            label: qsTr("Clock shadow blur")
+            value: Config.background.desktopClock.shadow.blur
+            from: 0
+            to: 100
+            stepSize: 1
+            onMoved: v => GlobalConfig.background.desktopClock.shadow.blur = v
+        }
+
+        StepperRow {
+            last: true
+            label: qsTr("Clock scale")
+            value: Config.background.desktopClock.scale
+            from: 0.5
+            to: 2
+            stepSize: 0.1
+            onMoved: v => GlobalConfig.background.desktopClock.scale = v
+        }
+
+        SectionHeader {
+            text: qsTr("Audio visualiser")
+        }
+
+        ToggleRow {
+            first: true
+            text: qsTr("Show visualiser")
+            checked: Config.background.visualiser.enabled
+            onToggled: GlobalConfig.background.visualiser.enabled = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Hide when audio stops")
+            checked: Config.background.visualiser.autoHide
+            onToggled: GlobalConfig.background.visualiser.autoHide = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Blur visualiser")
+            checked: Config.background.visualiser.blur
+            onToggled: GlobalConfig.background.visualiser.blur = checked
+        }
+
+        StepperRow {
+            label: qsTr("Visualiser rounding")
+            value: Config.background.visualiser.rounding
+            from: 0
+            to: 3
+            stepSize: 0.1
+            onMoved: v => GlobalConfig.background.visualiser.rounding = v
+        }
+
+        StepperRow {
+            last: true
+            label: qsTr("Visualiser spacing")
+            value: Config.background.visualiser.spacing
+            from: 0
+            to: 3
+            stepSize: 0.1
+            onMoved: v => GlobalConfig.background.visualiser.spacing = v
         }
     }
 }

@@ -1,0 +1,22 @@
+name: Bug report
+description: Atom Shell hatası bildir
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: Sorun
+      description: Beklenen ve gerçekleşen davranışı, tekrar adımlarını yazın.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Doctor çıktısı
+      description: '`atomshell doctor` çıktısını ekleyin.'
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Shell logu
+      description: Gerekliyse `atomshell log` çıktısını ekleyin; hassas bilgileri temizleyin.
+      render: text

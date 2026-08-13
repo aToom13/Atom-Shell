@@ -5,6 +5,10 @@ import QtQuick
 QtObject {
     id: root
 
+    // Kept explicit so global shortcuts can open this page without depending on
+    // translated labels.
+    readonly property int shortcutsPageIndex: 8
+
     readonly property list<var> pages: [
         // Appearance
         {
@@ -15,23 +19,22 @@ QtObject {
         },
 
         // Connectivity
-        // TODO
-        // {
-        //     label: qsTr("Display"),
-        //     icon: "monitor",
-        //     description: qsTr("Output configuration"),
-        //     category: "connectivity"
-        // },
+        {
+            label: qsTr("Display"),
+            icon: "monitor",
+            description: qsTr("Outputs, resolution and scale"),
+            category: "connectivity"
+        },
         {
             label: qsTr("Network"),
             icon: "wifi",
-            description: qsTr("Wi-Fi, ethernet, VPN"),
+            description: qsTr("Wi-Fi, ethernet, VPN and diagnostics"),
             category: "connectivity"
         },
         {
             label: qsTr("Connected devices"),
             icon: "devices_other",
-            description: qsTr("Bluetooth, pairing"),
+            description: qsTr("Bluetooth, KDE Connect, USB and LAN"),
             category: "connectivity",
             noFill: true
         },
@@ -44,15 +47,27 @@ QtObject {
 
         // System
         {
+            label: qsTr("Power & lock"),
+            icon: "lock_clock",
+            description: qsTr("Lock screen, idle, battery and OSD"),
+            category: "system"
+        },
+        {
             label: qsTr("Updates"),
-            icon: "update",
-            description: qsTr("System updates"),
+            icon: "system_update",
+            description: qsTr("System, AUR and Flatpak updates"),
             category: "system"
         },
         {
             label: qsTr("Plugins"),
             icon: "extension",
-            description: qsTr("Manage plugins"),
+            description: qsTr("Hyprland plugin runtime and settings"),
+            category: "system"
+        },
+        {
+            label: qsTr("Keyboard shortcuts"),
+            icon: "keyboard",
+            description: qsTr("Window, workspace and shell controls"),
             category: "system"
         },
 

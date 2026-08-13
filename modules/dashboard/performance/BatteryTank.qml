@@ -92,7 +92,7 @@ StyledClippingRect {
                 if (contents.charging)
                     return qsTr("Charging");
 
-                const s = UPower.displayDevice.timeToEmpty;
+                const s = BatteryEstimator.estimatedSeconds;
                 if (s === 0)
                     return qsTr("...");
 
@@ -106,6 +106,14 @@ StyledClippingRect {
             color: contents.subTextColour
             font: Tokens.font.body.small
             animate: true
+        }
+
+        StyledText {
+            Layout.alignment: Qt.AlignRight
+            text: !contents.charging && UPower.onBattery && BatteryEstimator.hasData ? qsTr("~%1W").arg(BatteryEstimator.avgPower1Min.toFixed(1)) : ""
+            visible: text.length > 0
+            color: contents.subTextColour
+            font: Tokens.font.body.small
         }
 
         RowLayout {

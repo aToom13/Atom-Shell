@@ -1,6 +1,6 @@
-.direnv
+/.build/
+/build/
 /result
-/.qmlls.ini
-build/
-.cache/
-logs
+*.user
+*.log
+.qmlls.ini

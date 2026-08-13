@@ -17,21 +17,34 @@ Singleton {
             "animations:enabled": 0,
             "decoration:shadow:enabled": 0,
             "decoration:blur:enabled": 0,
+            "decoration:active_opacity": 1,
+            "decoration:inactive_opacity": 1,
             "general:gaps_in": 0,
             "general:gaps_out": 0,
             "general:border_size": 1,
             "decoration:rounding": 0,
             "general:allow_tearing": 1
         });
+        Hypr.extras.message("eval hl.window_rule({ match = { fullscreen = false }, opacity = '1 override' })");
+    }
+
+    Process {
+        id: tlpProc
+    }
+
+    function setTlpProfile(profile: string): void {
+        tlpProc.exec(["tlpctl", profile]);
     }
 
     onEnabledChanged: {
         if (enabled) {
             setDynamicConfs();
+            setTlpProfile("performance");
             if (GlobalConfig.utilities.toasts.gameModeChanged)
                 Toaster.toast(qsTr("Game mode enabled"), qsTr("Disabled Hyprland animations, blur, gaps and shadows"), "gamepad");
         } else {
             Hypr.extras.message("reload");
+            setTlpProfile("balanced");
             if (GlobalConfig.utilities.toasts.gameModeChanged)
                 Toaster.toast(qsTr("Game mode disabled"), qsTr("Hyprland settings restored"), "gamepad");
         }

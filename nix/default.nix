@@ -33,7 +33,7 @@
   withCli ? false,
   extraRuntimeDeps ? [],
 }: let
-  version = "1.0.0";
+  version = lib.removeSuffix "\n" (builtins.readFile ../VERSION);
 
   qs = quickshell.withModules [qt6.qtimageformats];
 
@@ -73,7 +73,7 @@
 
   extras = stdenv.mkDerivation {
     inherit cmakeBuildType;
-    name = "caelestia-extras${lib.optionalString debug "-debug"}";
+    name = "atom-shell-extras${lib.optionalString debug "-debug"}";
     src = lib.fileset.toSource {
       root = ./..;
       fileset = lib.fileset.union ./../CMakeLists.txt ./../extras;
@@ -91,7 +91,7 @@
 
   plugin = stdenv.mkDerivation {
     inherit cmakeBuildType;
-    name = "caelestia-qml-plugin${lib.optionalString debug "-debug"}";
+    name = "atom-shell-qml-plugin${lib.optionalString debug "-debug"}";
     src = lib.fileset.toSource {
       root = ./..;
       fileset = lib.fileset.union ./../CMakeLists.txt ./../plugin;
@@ -111,7 +111,7 @@
 
   m3shapesModule = stdenv.mkDerivation {
     inherit cmakeBuildType;
-    name = "caelestia-m3shapes${lib.optionalString debug "-debug"}";
+    name = "atom-shell-m3shapes${lib.optionalString debug "-debug"}";
     src = lib.fileset.toSource {
       root = ./..;
       fileset = ./../CMakeLists.txt;
@@ -132,7 +132,7 @@
 in
   stdenv.mkDerivation {
     inherit version cmakeBuildType;
-    pname = "caelestia-shell${lib.optionalString debug "-debug"}";
+    pname = "atom-shell${lib.optionalString debug "-debug"}";
     src = ./..;
 
     nativeBuildInputs = [cmake ninja makeWrapper qt6.wrapQtAppsHook];
@@ -142,7 +142,7 @@ in
     cmakeFlags =
       [
         (lib.cmakeFeature "ENABLE_MODULES" "shell")
-        (lib.cmakeFeature "INSTALL_QSCONFDIR" "${placeholder "out"}/share/caelestia-shell")
+        (lib.cmakeFeature "INSTALL_QSCONFDIR" "${placeholder "out"}/share/atomshell")
       ]
       ++ cmakeVersionFlags;
 
@@ -156,12 +156,20 @@ in
     '';
 
     postInstall = ''
-      makeWrapper ${qs}/bin/qs $out/bin/caelestia-shell \
-      	--prefix PATH : "${lib.makeBinPath runtimeDeps}" \
-      	--set FONTCONFIG_FILE "${fontconfig}" \
-      	--set CAELESTIA_LIB_DIR ${extras}/lib \
+      makeWrapper ${qs}/bin/qs $out/bin/atomshell \
+        --prefix PATH : "${lib.makeBinPath runtimeDeps}" \
+        --set FONTCONFIG_FILE "${fontconfig}" \
+        --set CAELESTIA_LIB_DIR ${extras}/lib \
         --set CAELESTIA_XKB_RULES_PATH ${xkeyboard-config}/share/xkeyboard-config-2/rules/base.lst \
-      	--add-flags "-p $out/share/caelestia-shell"
+        --prefix QML_IMPORT_PATH : ${plugin}/${qt6.qtbase.qtQmlPrefix} \
+        --add-flags "-p $out/share/atomshell"
+
+      makeWrapper ${qs}/bin/qs $out/bin/atomshell-runtime \
+        --prefix PATH : "${lib.makeBinPath runtimeDeps}" \
+        --set FONTCONFIG_FILE "${fontconfig}" \
+        --set CAELESTIA_LIB_DIR ${extras}/lib \
+        --set CAELESTIA_XKB_RULES_PATH ${xkeyboard-config}/share/xkeyboard-config-2/rules/base.lst \
+        --prefix QML_IMPORT_PATH : ${plugin}/${qt6.qtbase.qtQmlPrefix}
 
       mkdir -p $out/lib
       ln -s ${extras}/lib/* $out/lib/
@@ -172,9 +180,9 @@ in
     };
 
     meta = {
-      description = "A fluid, morphing shell for your Linux desktop";
-      homepage = "https://github.com/caelestia-dots/shell";
+      description = "Atom Shell, a personal desktop shell derived from Caelestia Shell";
+      homepage = "https://github.com/aToom13/Atom-Shell";
       license = lib.licenses.gpl3Only;
-      mainProgram = "caelestia-shell";
+      mainProgram = "atomshell";
     };
   }

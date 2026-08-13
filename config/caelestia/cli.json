@@ -1,0 +1,12 @@
+{
+    "toggles": {
+        "games": {
+            "steam": {
+                "enable": false,
+                "match": [{"class": "steam"}],
+                "command": ["steam"],
+                "move": true
+            }
+        }
+    }
+}

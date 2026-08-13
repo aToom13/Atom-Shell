@@ -1,0 +1,290 @@
+{
+    "appearance": {
+        "transparency": {
+            "enabled": true
+        }
+    },
+    "background": {
+        "desktopClock": {
+            "background": {
+                "blur": true,
+                "enabled": true,
+                "opacity": 0.5
+            },
+            "enabled": true,
+            "invertColors": false,
+            "position": "bottom-right",
+            "scale": 1,
+            "shadow": {
+                "blur": 32,
+                "enabled": true,
+                "opacity": 0.8
+            }
+        },
+        "visualiser": {
+            "blur": true,
+            "enabled": true,
+            "rounding": 1,
+            "spacing": 1
+        }
+    },
+    "bar": {
+        "activeWindow": {
+            "compact": true,
+            "inverted": false,
+            "showOnHover": true
+        },
+        "clock": {
+            "background": true,
+            "showDate": true
+        },
+        "dragThreshold": 20,
+        "persistent": true,
+        "popouts": {
+            "activeWindow": true,
+            "tray": true
+        },
+        "scrollActions": {
+            "workspaces": true
+        },
+        "showOnHover": true,
+        "statusIcons": [
+            { "id": "lockStatus", "enabled": true },
+            { "id": "audio", "enabled": true },
+            { "id": "microphone", "enabled": true },
+            { "id": "kbLayout", "enabled": false },
+            { "id": "network", "enabled": true },
+            { "id": "bluetooth", "enabled": true },
+            { "id": "battery", "enabled": true }
+        ],
+        "tray": {
+            "background": false,
+            "compact": true,
+            "recolour": true
+        },
+        "workspaces": {
+            "activeIndicator": true,
+            "activeTrail": true,
+            "maxWindowIcons": 5,
+            "occupiedBg": true,
+            "perMonitorWorkspaces": true,
+            "showWindows": true,
+            "showWindowsOnSpecialWorkspaces": true,
+            "shown": 3
+        }
+    },
+    "dashboard": {
+        "dragThreshold": 50,
+        "performance": {
+            "showGpu": true
+        }
+    },
+    "general": {
+        "apps": {
+            "playback": [
+                "/usr/bin/vlc",
+                "--started-from-file"
+            ]
+        },
+        "showOverFullscreen": false
+    },
+    "launcher": {
+        "actions": [
+            {
+                "command": [
+                    "autocomplete",
+                    "calc"
+                ],
+                "description": "Do simple math equations (powered by Qalc)",
+                "icon": "calculate",
+                "name": "Calculator"
+            },
+            {
+                "command": [
+                    "autocomplete",
+                    "scheme"
+                ],
+                "description": "Change the current colour scheme",
+                "icon": "palette",
+                "name": "Scheme"
+            },
+            {
+                "command": [
+                    "autocomplete",
+                    "wallpaper"
+                ],
+                "description": "Change the current wallpaper",
+                "icon": "image",
+                "name": "Wallpaper"
+            },
+            {
+                "command": [
+                    "autocomplete",
+                    "variant"
+                ],
+                "description": "Change the current scheme variant",
+                "icon": "colors",
+                "name": "Variant"
+            },
+            {
+                "command": [
+                    "caelestia",
+                    "wallpaper",
+                    "-r"
+                ],
+                "description": "Switch to a random wallpaper",
+                "icon": "casino",
+                "name": "Random"
+            },
+            {
+                "command": [
+                    "setMode",
+                    "light"
+                ],
+                "description": "Change the scheme to light mode",
+                "icon": "light_mode",
+                "name": "Light"
+            },
+            {
+                "command": [
+                    "setMode",
+                    "dark"
+                ],
+                "description": "Change the scheme to dark mode",
+                "icon": "dark_mode",
+                "name": "Dark"
+            },
+            {
+                "command": [
+                    "poweroff"
+                ],
+                "dangerous": true,
+                "description": "Shutdown the system",
+                "icon": "power_settings_new",
+                "name": "Shutdown"
+            },
+            {
+                "command": [
+                    "reboot"
+                ],
+                "dangerous": true,
+                "description": "Reboot the system",
+                "icon": "cached",
+                "name": "Reboot"
+            },
+            {
+                "command": [
+                    "logout"
+                ],
+                "dangerous": true,
+                "description": "Log out of the current session",
+                "icon": "exit_to_app",
+                "name": "Logout"
+            },
+            {
+                "command": [
+                    "loginctl",
+                    "lock-session"
+                ],
+                "description": "Lock the current session",
+                "icon": "lock",
+                "name": "Lock"
+            },
+            {
+                "command": [
+                    "suspendThenHibernate"
+                ],
+                "description": "Suspend then hibernate",
+                "icon": "bedtime",
+                "name": "Sleep"
+            },
+            {
+                "command": [
+                    "caelestia",
+                    "shell",
+                    "nexus",
+                    "open"
+                ],
+                "description": "Configure the shell",
+                "icon": "settings",
+                "name": "Settings"
+            }
+        ],
+        "dragThreshold": 90,
+        "enableDangerousActions": true,
+        "hiddenApps": [],
+        "maxShown": 5,
+        "showOnHover": true,
+        "useFuzzy": {
+            "actions": true,
+            "apps": true,
+            "schemes": true,
+            "variants": true
+        }
+    },
+    "lock": {
+        "enableFprint": false,
+        "enableHowdy": false,
+        "useWallpaper": true
+    },
+    "nexus": {
+        "maxNetworksShown": 5,
+        "networkRescanInterval": 10000
+    },
+    "notifs": {
+        "actionOnClick": false,
+        "defaultExpireTimeout": 5000,
+        "expire": true,
+        "fullscreen": "on",
+        "fullscreenExpireTimeout": 2000,
+        "openExpanded": false
+    },
+    "services": {
+        "gpuType": "",
+        "maxVolume": 1.5,
+        "useTwelveHourClock": false,
+        "weatherLocation": ""
+    },
+    "sidebar": {
+        "enabled": true,
+        "showOnHover": false
+    },
+    "utilities": {
+        "quickToggles": [
+            {
+                "enabled": true,
+                "id": "wifi"
+            },
+            {
+                "enabled": true,
+                "id": "bluetooth"
+            },
+            {
+                "enabled": true,
+                "id": "mic"
+            },
+            {
+                "enabled": true,
+                "id": "settings"
+            },
+            {
+                "enabled": true,
+                "id": "gameMode"
+            },
+            {
+                "enabled": true,
+                "id": "dnd"
+            },
+            {
+                "enabled": false,
+                "id": "vpn"
+            }
+        ],
+        "toasts": {
+            "audioInputChanged": true,
+            "audioOutputChanged": true,
+            "dndChanged": true,
+            "nowPlaying": true
+        }
+    }
+}

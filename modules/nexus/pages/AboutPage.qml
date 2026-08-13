@@ -34,8 +34,7 @@ PageBase {
             }
         }
 
-        // Parsed from the caelestia CLI's package listing; the sh wrapper avoids a
-        // warning when the (optional) CLI isn't installed
+        // The compatibility CLI is optional, so suppress its missing-command warning.
         Process {
             running: true
             command: ["sh", "-c", "caelestia --version 2>/dev/null"]
@@ -61,7 +60,7 @@ PageBase {
                 width: parent.width - Tokens.padding.largeIncreased * 2
                 spacing: Tokens.spacing.small
 
-                AnimatedLogo {
+                AtomLogo {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: implicitWidth
                     Layout.preferredHeight: implicitHeight
@@ -70,13 +69,13 @@ PageBase {
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.topMargin: Tokens.spacing.small
-                    text: "Caelestia"
+                    text: AtomInfo.name
                     font: Tokens.font.headline.builders.large.width(110).build()
                 }
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
-                    text: CUtils.version ? `v${CUtils.version}` : "…"
+                    text: `v${AtomInfo.version}`
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.medium
                 }
@@ -122,13 +121,18 @@ PageBase {
 
         InfoRow {
             first: true
-            label: qsTr("Shell")
-            value: CUtils.version || "…"
+            label: AtomInfo.name
+            value: AtomInfo.version
         }
 
         InfoRow {
-            label: qsTr("CLI")
+            label: qsTr("Compatibility CLI")
             value: root.cliVersion || "…"
+        }
+
+        InfoRow {
+            label: qsTr("Upstream API")
+            value: AtomInfo.upstreamVersion
         }
 
         InfoRow {

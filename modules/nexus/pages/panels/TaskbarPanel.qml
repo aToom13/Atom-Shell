@@ -1,11 +1,58 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Caelestia.Config
+import qs.components
+import qs.components.controls
+import qs.services
+import qs.utils
 import qs.modules.nexus.common
 
 PageBase {
     id: root
+
+    function componentEnabled(componentId: string): bool {
+        const entry = Config.bar.entries.values.find(e => e.id === componentId);
+        return entry?.enabled ?? true;
+    }
+
+    function setComponentEnabled(componentId: string, enabled: bool): void {
+        const entries = GlobalConfig.bar.entries;
+        for (let i = 0; i < entries.count; i++) {
+            const entry = entries.at(i);
+            if (entry.id === componentId) {
+                entry.enabled = enabled;
+                return;
+            }
+        }
+        entries.insert({ id: componentId, enabled });
+    }
+
+    function moveComponent(index: int, delta: int): void {
+        const target = index + delta;
+        if (target < 0 || target >= Config.bar.entries.count)
+            return;
+        GlobalConfig.bar.entries.move(index, target);
+    }
+
+    function componentLabel(id: string): string {
+        const labels = { logo: qsTr("Logo"), workspaces: qsTr("Workspaces"), spacer: qsTr("Flexible spacer"), activeWindow: qsTr("Active window"), tray: qsTr("System tray"), clock: qsTr("Clock"), statusIcons: qsTr("Status icons"), power: qsTr("Power button") };
+        return labels[id] ?? id;
+    }
+
+    function screenBarEnabled(screenName: string): bool {
+        return !Strings.testRegexList(GlobalConfig.bar.excludedScreens, screenName);
+    }
+
+    function setScreenBarEnabled(screenName: string, enabled: bool): void {
+        const current = GlobalConfig.bar.excludedScreens;
+        if (enabled)
+            GlobalConfig.bar.excludedScreens = current.filter(pattern => !Strings.testRegexList([pattern], screenName));
+        else if (!Strings.testRegexList(current, screenName))
+            GlobalConfig.bar.excludedScreens = [...current, screenName];
+    }
 
     title: qsTr("Taskbar")
     isSubPage: true
@@ -51,6 +98,97 @@ PageBase {
         // Components
         SectionHeader {
             text: qsTr("Components")
+        }
+
+        ToggleRow {
+            first: true
+            text: qsTr("Logo")
+            checked: root.componentEnabled("logo")
+            onToggled: root.setComponentEnabled("logo", checked)
+        }
+
+        ToggleRow {
+            text: qsTr("Workspaces")
+            checked: root.componentEnabled("workspaces")
+            onToggled: root.setComponentEnabled("workspaces", checked)
+        }
+
+        ToggleRow {
+            text: qsTr("Active window")
+            checked: root.componentEnabled("activeWindow")
+            onToggled: root.setComponentEnabled("activeWindow", checked)
+        }
+
+        ToggleRow {
+            text: qsTr("System tray")
+            checked: root.componentEnabled("tray")
+            onToggled: root.setComponentEnabled("tray", checked)
+        }
+
+        ToggleRow {
+            text: qsTr("Clock")
+            checked: root.componentEnabled("clock")
+            onToggled: root.setComponentEnabled("clock", checked)
+        }
+
+        ToggleRow {
+            text: qsTr("Status icons")
+            checked: root.componentEnabled("statusIcons")
+            onToggled: root.setComponentEnabled("statusIcons", checked)
+        }
+
+        ToggleRow {
+            last: true
+            text: qsTr("Power button")
+            checked: root.componentEnabled("power")
+            onToggled: root.setComponentEnabled("power", checked)
+        }
+
+        SectionHeader { text: qsTr("Component order") }
+
+        Repeater {
+            model: Config.bar.entries.values
+            delegate: ConnectedRect {
+                required property var modelData
+                required property int index
+                Layout.fillWidth: true
+                first: index === 0
+                last: index === Config.bar.entries.count - 1
+                implicitHeight: orderLayout.implicitHeight + Tokens.padding.medium * 2
+
+                RowLayout {
+                    id: orderLayout
+                    anchors.fill: parent
+                    anchors.margins: Tokens.padding.medium
+                    anchors.leftMargin: Tokens.padding.largeIncreased
+                    anchors.rightMargin: Tokens.padding.largeIncreased
+                    spacing: Tokens.spacing.medium
+                    MaterialIcon { text: "drag_indicator"; color: Colours.palette.m3outline; fontStyle: Tokens.font.icon.small }
+                    StyledText { Layout.fillWidth: true; text: root.componentLabel(modelData.id); color: (modelData.enabled ?? true) ? Colours.palette.m3onSurface : Colours.palette.m3outline; font: Tokens.font.body.small }
+                    IconButton { icon: "arrow_upward"; type: IconButton.Text; disabled: index === 0; onClicked: root.moveComponent(index, -1) }
+                    IconButton { icon: "arrow_downward"; type: IconButton.Text; disabled: index === Config.bar.entries.count - 1; onClicked: root.moveComponent(index, 1) }
+                }
+            }
+        }
+
+        SectionHeader { text: qsTr("Displays") }
+
+        Repeater {
+            model: Quickshell.screens
+            delegate: ToggleRow {
+                required property var modelData
+                required property int index
+                first: index === 0
+                last: index === Quickshell.screens.length - 1
+                text: modelData.name
+                subtext: qsTr("Show the taskbar on this display")
+                checked: root.screenBarEnabled(modelData.name)
+                onToggled: root.setScreenBarEnabled(modelData.name, checked)
+            }
+        }
+
+        SectionHeader {
+            text: qsTr("Component settings")
         }
 
         NavRow {

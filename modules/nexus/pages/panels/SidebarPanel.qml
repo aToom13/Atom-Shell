@@ -29,6 +29,23 @@ PageBase {
             onToggled: GlobalConfig.sidebar.enabled = checked
         }
 
+        ToggleRow {
+            text: qsTr("Reveal on hover")
+            subtext: qsTr("Open the sidebar when the pointer reaches its edge")
+            checked: Config.sidebar.showOnHover
+            onToggled: GlobalConfig.sidebar.showOnHover = checked
+        }
+
+        StepperRow {
+            label: qsTr("Hover threshold")
+            subtext: qsTr("Minimum edge distance before hover reveal (px)")
+            value: Config.sidebar.minHoverThreshold
+            from: 0
+            to: 400
+            stepSize: 5
+            onMoved: v => GlobalConfig.sidebar.minHoverThreshold = v
+        }
+
         StepperRow {
             last: true
             label: qsTr("Drag threshold")

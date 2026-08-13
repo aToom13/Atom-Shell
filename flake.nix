@@ -1,5 +1,5 @@
 {
-  description = "Desktop shell for Caelestia dots";
+  description = "Atom Shell desktop environment layer";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -34,7 +34,7 @@
     formatter = forAllSystems (pkgs: pkgs.alejandra);
 
     packages = forAllSystems (pkgs: rec {
-      caelestia-shell = pkgs.callPackage ./nix {
+      atom-shell = pkgs.callPackage ./nix {
         inherit (inputs) m3shapes;
         rev = self.rev or self.dirtyRev;
         stdenv = pkgs.clangStdenv;
@@ -44,14 +44,15 @@
         };
         caelestia-cli = inputs.caelestia-cli.packages.${pkgs.stdenv.hostPlatform.system}.default;
       };
-      with-cli = caelestia-shell.override {withCli = true;};
-      debug = caelestia-shell.override {debug = true;};
-      default = caelestia-shell;
+      runtime = atom-shell;
+      with-cli = atom-shell.override {withCli = true;};
+      debug = atom-shell.override {debug = true;};
+      default = atom-shell;
     });
 
     devShells = forAllSystems (pkgs: {
       default = let
-        shell = self.packages.${pkgs.stdenv.hostPlatform.system}.caelestia-shell;
+        shell = self.packages.${pkgs.stdenv.hostPlatform.system}.atom-shell;
       in
         pkgs.mkShell.override {stdenv = shell.stdenv;} {
           inputsFrom = [shell shell.plugin shell.extras shell.m3shapesModule];

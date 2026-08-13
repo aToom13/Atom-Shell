@@ -2,10 +2,17 @@ pragma ComponentBehavior: Bound
 
 import QtQuick.Layouts
 import Caelestia.Config
+import qs.components
+import qs.components.controls
 import qs.modules.nexus.common
 
 PageBase {
     id: root
+
+    readonly property list<MenuItem> capitalisationItems: [
+        MenuItem { text: qsTr("Preserve") }, MenuItem { text: qsTr("Uppercase") }, MenuItem { text: qsTr("Lowercase") }
+    ]
+    readonly property list<string> capitalisationValues: ["preserve", "upper", "lower"]
 
     title: qsTr("Workspaces")
     isSubPage: true
@@ -73,6 +80,32 @@ PageBase {
             subtext: qsTr("Show each monitor's workspaces independently")
             checked: GlobalConfig.bar.workspaces.perMonitorWorkspaces
             onToggled: GlobalConfig.bar.workspaces.perMonitorWorkspaces = checked
+        }
+
+        SectionHeader { text: qsTr("Labels") }
+
+        ConnectedRect {
+            Layout.fillWidth: true
+            first: true
+            implicitHeight: labelLayout.implicitHeight + Tokens.padding.large * 2
+            RowLayout {
+                id: labelLayout
+                anchors.fill: parent
+                anchors.margins: Tokens.padding.large
+                spacing: Tokens.spacing.medium
+                StyledTextField { Layout.fillWidth: true; placeholderText: qsTr("Empty workspace"); supportingText: qsTr("Default label"); text: GlobalConfig.bar.workspaces.label; onAccepted: GlobalConfig.bar.workspaces.label = text }
+                StyledTextField { Layout.fillWidth: true; placeholderText: qsTr("Occupied"); supportingText: qsTr("Occupied workspace label"); text: GlobalConfig.bar.workspaces.occupiedLabel; onAccepted: GlobalConfig.bar.workspaces.occupiedLabel = text }
+                StyledTextField { Layout.fillWidth: true; placeholderText: qsTr("Active"); supportingText: qsTr("Active workspace label"); text: GlobalConfig.bar.workspaces.activeLabel; onAccepted: GlobalConfig.bar.workspaces.activeLabel = text }
+            }
+        }
+
+        SelectRow {
+            last: true
+            label: qsTr("Capitalisation")
+            subtext: qsTr("Applied when the workspace name is shown")
+            menuItems: root.capitalisationItems
+            active: root.capitalisationItems[Math.max(0, root.capitalisationValues.indexOf(Config.bar.workspaces.capitalisation))]
+            onSelected: item => GlobalConfig.bar.workspaces.capitalisation = root.capitalisationValues[root.capitalisationItems.indexOf(item)]
         }
     }
 }

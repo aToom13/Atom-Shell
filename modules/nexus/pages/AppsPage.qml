@@ -3,11 +3,13 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Widgets
 import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.containers
+import qs.components.controls
 import qs.services
 import qs.utils
 import qs.modules.nexus.common
@@ -15,7 +17,39 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
+    property string defaultBrowser: qsTr("Detecting…")
+    property string defaultMail: qsTr("Detecting…")
+
+    function refreshDefaults(): void {
+        browserProc.running = mailProc.running = true;
+    }
+
+    function setSystemDefault(kind: string, app: DesktopEntry): void {
+        if (!app)
+            return;
+        if (kind === "browser") {
+            Quickshell.execDetached(["xdg-settings", "set", "default-web-browser", app.id]);
+            defaultBrowser = app.id;
+        } else {
+            Quickshell.execDetached(["xdg-mime", "default", app.id, "x-scheme-handler/mailto"]);
+            defaultMail = app.id;
+        }
+    }
+
     title: qsTr("Apps")
+
+    Component.onCompleted: refreshDefaults()
+
+    property Process browserProcess: Process {
+        id: browserProc
+        command: ["xdg-settings", "get", "default-web-browser"]
+        stdout: StdioCollector { onStreamFinished: root.defaultBrowser = text.trim() || qsTr("Not set") }
+    }
+    property Process mailProcess: Process {
+        id: mailProc
+        command: ["xdg-mime", "query", "default", "x-scheme-handler/mailto"]
+        stdout: StdioCollector { onStreamFinished: root.defaultMail = text.trim() || qsTr("Not set") }
+    }
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -52,11 +86,25 @@ PageBase {
         }
 
         DefaultRow {
-            last: true
             icon: "folder"
             label: qsTr("File manager")
             status: GlobalConfig.general.apps.explorer.join(" ")
             onSelected: app => GlobalConfig.general.apps.explorer = app.command
+        }
+
+        DefaultRow {
+            icon: "language"
+            label: qsTr("Web browser")
+            status: root.defaultBrowser
+            onSelected: app => root.setSystemDefault("browser", app)
+        }
+
+        DefaultRow {
+            last: true
+            icon: "mail"
+            label: qsTr("Email")
+            status: root.defaultMail
+            onSelected: app => root.setSystemDefault("mail", app)
         }
 
         // Library
@@ -71,6 +119,24 @@ PageBase {
             text: qsTr("All apps")
             subtext: qsTr("Browse installed apps, set favourites and hidden")
             onClicked: root.nState.openSubPage(1)
+        }
+
+        SectionHeader { text: qsTr("System integration") }
+
+        NavRow {
+            first: true
+            icon: "app_registration"
+            text: qsTr("Default app associations")
+            subtext: qsTr("File types, links and system defaults")
+            onClicked: Quickshell.execDetached(["kcmshell6", "kcm_componentchooser"])
+        }
+
+        NavRow {
+            last: true
+            icon: "rocket_launch"
+            text: qsTr("Autostart applications")
+            subtext: qsTr("Choose which apps start with your session")
+            onClicked: Quickshell.execDetached(["kcmshell6", "kcm_autostart"])
         }
     }
 

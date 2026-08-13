@@ -2,7 +2,11 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
 import Caelestia.Config
+import qs.components
+import qs.components.controls
 import qs.services
 import qs.utils
 import qs.modules.nexus.common
@@ -11,6 +15,24 @@ PageBase {
     id: root
 
     title: qsTr("Audio")
+
+    property string serverName: qsTr("Detecting…")
+    property string sampleSpec: ""
+
+    Component.onCompleted: audioInfoProc.running = true
+
+    property Process audioInfoProcess: Process {
+        id: audioInfoProc
+        command: ["pactl", "info"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                for (const line of text.split("\n")) {
+                    if (line.startsWith("Server Name:")) root.serverName = line.split(":").slice(1).join(":").trim();
+                    if (line.startsWith("Default Sample Specification:")) root.sampleSpec = line.split(":").slice(1).join(":").trim();
+                }
+            }
+        }
+    }
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -81,6 +103,53 @@ PageBase {
             text: qsTr("App volumes")
             subtext: Audio.streams.length === 0 ? qsTr("No apps playing audio") : Audio.streams.length === 1 ? qsTr("1 app playing audio") : qsTr("%1 apps playing audio").arg(Audio.streams.length)
             onClicked: root.nState.openSubPage(1)
+        }
+
+        SectionHeader { text: qsTr("Volume behaviour") }
+
+        StepperRow {
+            first: true
+            label: qsTr("Maximum output")
+            subtext: qsTr("Upper limit used by the shell controls")
+            value: Math.round(GlobalConfig.services.maxVolume * 100)
+            from: 50
+            to: 200
+            stepSize: 5
+            onMoved: v => GlobalConfig.services.maxVolume = v / 100
+        }
+
+        StepperRow {
+            last: true
+            label: qsTr("Volume step")
+            subtext: qsTr("Change for media keys and taskbar scrolling")
+            value: Math.round(GlobalConfig.services.audioIncrement * 100)
+            from: 1
+            to: 25
+            stepSize: 1
+            onMoved: v => GlobalConfig.services.audioIncrement = v / 100
+        }
+
+        SectionHeader { text: qsTr("Audio system") }
+        InfoRow { first: true; icon: "graphic_eq"; label: qsTr("Sound server"); value: root.serverName }
+        InfoRow { last: true; icon: "equalizer"; label: qsTr("Sample format"); value: root.sampleSpec }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: Tokens.spacing.medium
+            spacing: Tokens.spacing.medium
+
+            IconTextButton {
+                icon: "tune"
+                text: qsTr("Advanced mixer")
+                type: ButtonBase.Filled
+                onClicked: Quickshell.execDetached(GlobalConfig.general.apps.audio)
+            }
+            IconTextButton {
+                icon: "restart_alt"
+                text: qsTr("Restart audio")
+                type: IconTextButton.Tonal
+                onClicked: Quickshell.execDetached(["sh", "-c", "systemctl --user restart pipewire pipewire-pulse wireplumber"])
+            }
         }
     }
 }

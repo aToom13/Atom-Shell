@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Caelestia.Components
 import Caelestia.Config
 import qs.components
 import qs.components.controls
@@ -8,7 +9,20 @@ import qs.services
 StyledRect {
     id: root
 
-    readonly property real nonAnimHeight: layout.implicitHeight + (IdleInhibitor.enabled ? activeChip.implicitHeight + activeChip.anchors.topMargin : 0) + Tokens.padding.extraLargeIncreased
+    readonly property real nonAnimHeight: layout.implicitHeight + durationRow.implicitHeight + Tokens.spacing.medium
+        + (IdleInhibitor.enabled ? activeChip.implicitHeight + activeChip.anchors.topMargin : 0)
+        + Tokens.padding.extraLargeIncreased
+
+    function remainingText(): string {
+        const total = IdleInhibitor.remainingSeconds;
+        if (total < 0)
+            return qsTr("Until turned off");
+        const hours = Math.floor(total / 3600);
+        const mins = Math.floor((total % 3600) / 60);
+        const secs = total % 60;
+        return hours > 0 ? qsTr("%1h %2m remaining").arg(hours).arg(mins)
+            : qsTr("%1:%2 remaining").arg(mins).arg(secs.toString().padStart(2, "0"));
+    }
 
     implicitHeight: nonAnimHeight
 
@@ -64,7 +78,48 @@ StyledRect {
 
         StyledSwitch {
             checked: IdleInhibitor.enabled
-            onToggled: IdleInhibitor.enabled = checked
+            onToggled: checked ? IdleInhibitor.enableIndefinitely() : IdleInhibitor.disable()
+        }
+    }
+
+    ButtonRow {
+        id: durationRow
+
+        anchors.top: layout.bottom
+        anchors.topMargin: Tokens.spacing.medium
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: Tokens.padding.large
+        anchors.rightMargin: Tokens.padding.large
+        spacing: Tokens.spacing.small
+
+        TextButton {
+            text: qsTr("15 min")
+            fillWidth: true
+            type: ButtonBase.Tonal
+            checked: IdleInhibitor.timed && IdleInhibitor.remainingSeconds <= 15 * 60
+            onClicked: IdleInhibitor.enableFor(15)
+        }
+        TextButton {
+            text: qsTr("30 min")
+            fillWidth: true
+            type: ButtonBase.Tonal
+            checked: IdleInhibitor.timed && IdleInhibitor.remainingSeconds > 15 * 60 && IdleInhibitor.remainingSeconds <= 30 * 60
+            onClicked: IdleInhibitor.enableFor(30)
+        }
+        TextButton {
+            text: qsTr("1 hour")
+            fillWidth: true
+            type: ButtonBase.Tonal
+            checked: IdleInhibitor.timed && IdleInhibitor.remainingSeconds > 30 * 60
+            onClicked: IdleInhibitor.enableFor(60)
+        }
+        TextButton {
+            text: qsTr("Always")
+            fillWidth: true
+            type: ButtonBase.Tonal
+            checked: IdleInhibitor.enabled && !IdleInhibitor.timed
+            onClicked: IdleInhibitor.enableIndefinitely()
         }
     }
 
@@ -94,7 +149,7 @@ StyledRect {
                 id: activeText
 
                 anchors.centerIn: parent
-                text: qsTr("Active since %1").arg(Qt.formatTime(IdleInhibitor.enabledSince, GlobalConfig.services.useTwelveHourClock ? "hh:mm a" : "hh:mm"))
+                text: root.remainingText()
                 color: Colours.palette.m3onPrimary
                 font: Tokens.font.body.builders.small.size(Math.round(Tokens.font.body.small.pointSize * 0.9)).build()
             }

@@ -1,4 +1,5 @@
 import QtQuick
+import QtMultimedia
 import Quickshell
 import Caelestia.Config
 import Caelestia.Models
@@ -66,12 +67,35 @@ Item {
 
         CachingImage {
             anchors.fill: parent
-            path: root.modelData.path
+            visible: !Wallpapers.isVideo(path)
+            path: Wallpapers.isVideo(root.modelData.path) ? "" : root.modelData.path
             smooth: !root.PathView.view.moving
             sourceSize: {
                 const dpr = (QsWindow.window as QsWindow)?.devicePixelRatio ?? 1;
                 return Qt.size(image.implicitWidth * dpr, image.implicitHeight * dpr);
             }
+        }
+
+        Video {
+            anchors.fill: parent
+            visible: Wallpapers.isVideo(source)
+            source: Qt.resolvedUrl(root.modelData.path)
+            autoPlay: true
+            loops: MediaPlayer.Infinite
+            muted: true
+            playbackRate: 1
+            fillMode: VideoOutput.PreserveAspectCrop
+            smooth: true
+        }
+
+        MaterialIcon {
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: Tokens.padding.small
+            visible: Wallpapers.isVideo(root.modelData.path)
+            text: "play_circle"
+            color: Colours.tPalette.m3onSurface
+            fontStyle: Tokens.font.icon.builders.medium.size(20).weight(Font.DemiBold).build()
         }
     }
 

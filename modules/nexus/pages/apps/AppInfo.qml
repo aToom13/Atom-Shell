@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Widgets
 import Caelestia.Config
 import qs.components
+import qs.components.controls
 import qs.services
 import qs.utils
 import qs.modules.nexus.common
@@ -69,6 +70,27 @@ PageBase {
                     color: Colours.palette.m3outline
                     font: Tokens.font.body.small
                     wrapMode: Text.WordWrap
+                }
+            }
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: Tokens.spacing.large
+            spacing: Tokens.spacing.medium
+            IconTextButton {
+                icon: "open_in_new"
+                text: qsTr("Launch")
+                type: ButtonBase.Filled
+                onClicked: root.app?.execute()
+            }
+            IconTextButton {
+                icon: "edit_note"
+                text: qsTr("Edit desktop entry")
+                type: IconTextButton.Tonal
+                onClicked: {
+                    const safeId = (root.app?.id ?? "").replace(/'/g, "'\\''");
+                    Quickshell.execDetached(["sh", "-c", "id='" + safeId + "'; user_dir='" + Paths.home + "/.local/share/applications'; mkdir -p \"$user_dir\"; source_entry=$(find \"$user_dir\" /usr/share/applications -maxdepth 1 -name \"$id\" -print -quit 2>/dev/null); [ -z \"$source_entry\" ] && exit 1; target=\"$user_dir/$id\"; [ \"$source_entry\" = \"$target\" ] || cp \"$source_entry\" \"$target\"; \"${EDITOR:-codium}\" \"$target\""]);
                 }
             }
         }

@@ -75,6 +75,13 @@ PageBase {
             onToggled: GlobalConfig.notifs.openExpanded = checked
         }
 
+        ToggleRow {
+            text: qsTr("Run default action on click")
+            subtext: qsTr("Clicking a notification activates its primary action")
+            checked: GlobalConfig.notifs.actionOnClick
+            onToggled: GlobalConfig.notifs.actionOnClick = checked
+        }
+
         StepperRow {
             label: qsTr("Default timeout")
             subtext: qsTr("Time before a notification dismisses (ms)")
@@ -86,6 +93,16 @@ PageBase {
         }
 
         StepperRow {
+            label: qsTr("Fullscreen timeout")
+            subtext: qsTr("Shorter timeout used over fullscreen apps (ms)")
+            value: GlobalConfig.notifs.fullscreenExpireTimeout
+            from: 500
+            to: 30000
+            stepSize: 500
+            onMoved: v => GlobalConfig.notifs.fullscreenExpireTimeout = Math.round(v)
+        }
+
+        StepperRow {
             last: true
             label: qsTr("Group preview count")
             subtext: qsTr("Notifications shown per group before collapsing")
@@ -94,6 +111,30 @@ PageBase {
             to: 10
             stepSize: 1
             onMoved: v => GlobalConfig.notifs.groupPreviewNum = Math.round(v)
+        }
+
+        SectionHeader { text: qsTr("Gestures") }
+
+        StepperRow {
+            first: true
+            label: qsTr("Expand threshold")
+            subtext: qsTr("Vertical drag distance before expanding (px)")
+            value: Config.notifs.expandThreshold
+            from: 5
+            to: 100
+            stepSize: 5
+            onMoved: v => GlobalConfig.notifs.expandThreshold = Math.round(v)
+        }
+
+        StepperRow {
+            last: true
+            label: qsTr("Dismiss threshold")
+            subtext: qsTr("Horizontal swipe proportion needed to dismiss (%)")
+            value: Math.round(Config.notifs.clearThreshold * 100)
+            from: 10
+            to: 90
+            stepSize: 5
+            onMoved: v => GlobalConfig.notifs.clearThreshold = v / 100
         }
 
         // Toasts

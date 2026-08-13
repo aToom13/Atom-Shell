@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+config_home=${XDG_CONFIG_HOME:-$HOME/.config}
+data_home=${XDG_DATA_HOME:-$HOME/.local/share}
+state_home=${XDG_STATE_HOME:-$HOME/.local/state}
+shell_dir=$config_home/quickshell/caelestia
+data_dir=$data_home/atomshell
+runtime_dir=$data_dir/runtime
+manifest=$data_dir/install.env
+
+if [[ -r $manifest ]]; then
+    # This file is generated with shell-escaped values by the installer.
+    # shellcheck disable=SC1090
+    source "$manifest"
+fi
+
+export QML_IMPORT_PATH="$runtime_dir/lib/qt6/qml${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
+export CAELESTIA_LIB_DIR="$runtime_dir/lib/caelestia"
+
+qs_runtime() {
+    if command -v atomshell-runtime >/dev/null 2>&1; then
+        command atomshell-runtime "$@"
+    else
+        command qs "$@"
+    fi
+}
+
+require_shell() {
+    [[ -f $shell_dir/shell.qml ]] || {
+        printf 'Atom Shell bulunamadı: %s\nKurucuyu yeniden çalıştırın.\n' "$shell_dir" >&2
+        exit 1
+    }
+}
+
+instance_pids() {
+    qs_runtime list --all 2>/dev/null | awk -v path="$shell_dir/shell.qml" '
+        /^  Process ID:/ { pid=$3 }
+        /^  Config path:/ {
+            config=$0
+            sub(/^  Config path: /, "", config)
+            if (config == path && pid ~ /^[0-9]+$/) print pid
+        }
+    '
+}
+
+stop_shell() {
+    local pid attempt alive
+    local -a pids=()
+    mapfile -t pids < <(instance_pids)
+    ((${#pids[@]})) || return 0
+
+    for pid in "${pids[@]}"; do
+        kill -TERM "$pid" 2>/dev/null || true
+    done
+
+    for ((attempt = 0; attempt < 30; attempt++)); do
+        alive=false
+        for pid in "${pids[@]}"; do
+            kill -0 "$pid" 2>/dev/null && alive=true
+        done
+        [[ $alive == false ]] && return 0
+        sleep 0.1
+    done
+
+    printf 'Atom Shell süreci zamanında kapanmadı: %s\n' "${pids[*]}" >&2
+    return 1
+}
+
+case "${1:-start}" in
+    start)
+        require_shell
+        qs_runtime -c caelestia -n -d
+        ;;
+    run)
+        require_shell
+        qs_runtime -c caelestia -n
+        ;;
+    stop)
+        stop_shell
+        ;;
+    restart)
+        stop_shell
+        require_shell
+        qs_runtime -c caelestia -n -d
+        ;;
+    status)
+        qs_runtime list --all | awk -v path="$shell_dir/shell.qml" '
+            $0 ~ "Config path: " path { found=1 }
+            END { print found ? "Atom Shell çalışıyor." : "Atom Shell çalışmıyor."; exit !found }
+        '
+        ;;
+    log)
+        qs_runtime -c caelestia log
+        ;;
+    ipc)
+        shift
+        qs_runtime -c caelestia ipc "$@"
+        ;;
+    settings)
+        if command -v caelestia >/dev/null 2>&1; then
+            caelestia shell nexus open
+        else
+            qs_runtime -c caelestia ipc call nexus open
+        fi
+        ;;
+    update|doctor|uninstall|rollback)
+        action=$1
+        shift
+        source_dir=${ATOM_SHELL_SOURCE:-}
+        [[ -n $source_dir && -x $source_dir/$action.sh ]] || {
+            printf 'Kaynak depo bulunamadı. Atom-Shell deposundan ./%s.sh çalıştırın.\n' "$action" >&2
+            exit 1
+        }
+        exec "$source_dir/$action.sh" "$@"
+        ;;
+    version|--version|-V)
+        printf 'Atom Shell %s (%s runtime)\n' "${ATOM_SHELL_VERSION:-unknown}" "${ATOM_SHELL_RUNTIME:-unknown}"
+        ;;
+    help|--help|-h)
+        cat <<'EOF'
+Kullanım: atomshell KOMUT
+
+  start | run | stop | restart | status | log
+  settings                 Nexus ayarlarını aç
+  ipc ...                  Quickshell IPC komutu gönder
+  update | doctor          Kurulumu güncelle veya denetle
+  uninstall | rollback     Kaldır veya bir yedeğe dön
+  version                  Sürümü göster
+EOF
+        ;;
+    *)
+        printf 'Bilinmeyen komut: %s\n' "$1" >&2
+        exit 2
+        ;;
+esac

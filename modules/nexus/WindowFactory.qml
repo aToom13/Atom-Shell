@@ -14,6 +14,14 @@ Singleton {
         nexusComp.createObject(parent ?? dummy, props);
     }
 
+    function createForPage(page: int): void {
+        nexusComp.createObject(dummy, { initialPage: page });
+    }
+
+    function createForSubPage(page: int, subPage: int): void {
+        nexusComp.createObject(dummy, { initialPage: page, initialSubPage: subPage });
+    }
+
     QtObject {
         id: dummy
     }
@@ -23,6 +31,9 @@ Singleton {
 
         FloatingWindow {
             id: win
+
+            property int initialPage
+            property int initialSubPage: -1
 
             color: Colours.tPalette.m3surface
             surfaceFormat.opaque: false
@@ -49,6 +60,11 @@ Singleton {
                 anchors.fill: parent
                 nState.screen: win.screen
                 nState.isWindow: true
+                nState.currentPageIdx: win.initialPage
+                Component.onCompleted: {
+                    if (win.initialSubPage >= 0)
+                        nState.openSubPage(win.initialSubPage);
+                }
                 onClose: win.destroy()
             }
 

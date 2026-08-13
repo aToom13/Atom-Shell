@@ -41,6 +41,13 @@ QtObject {
 
         // Connectivity
         Component {
+            StackPage {
+                Component {
+                    DisplayPage {}
+                }
+            }
+        },
+        Component {
             // Network
             StackPage {
                 Component {
@@ -94,10 +101,32 @@ QtObject {
 
         // System
         Component {
-            PlaceholderComp {}
+            StackPage {
+                Component {
+                    PowerAndLockPage {}
+                }
+            }
         },
         Component {
-            PlaceholderComp {}
+            StackPage {
+                Component {
+                    UpdatesPage {}
+                }
+            }
+        },
+        Component {
+            StackPage {
+                Component {
+                    PluginsPage {}
+                }
+            }
+        },
+        Component {
+            StackPage {
+                Component {
+                    ShortcutsPage {}
+                }
+            }
         },
 
         // Shell
@@ -185,37 +214,6 @@ QtObject {
         }
     ]
 
-    readonly property Component placeholderComp: Component {
-        PlaceholderComp {}
-    }
-
-    component PlaceholderComp: Item {
-        property NexusState nState // To avoid the warning from non-existent property
-
-        ColumnLayout {
-            anchors.centerIn: parent
-            spacing: Tokens.padding.extraSmall
-
-            MaterialIcon {
-                Layout.alignment: Qt.AlignHCenter
-                text: "handyman"
-                color: Colours.palette.m3outlineVariant
-                fontStyle: Tokens.font.icon.extraLarge
-            }
-
-            StyledText {
-                Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Page under construction")
-                color: Colours.palette.m3outlineVariant
-                font: Tokens.font.title.large
-            }
-
-            StyledText {
-                Layout.alignment: Qt.AlignHCenter
-                text: qsTr("This page will be available in a future update.")
-                color: Colours.palette.m3outlineVariant
-                font: Tokens.font.body.large
-            }
-        }
-    }
+    // Invalid page indices fall back to the first real settings page.
+    readonly property Component placeholderComp: pageComps[0]
 }

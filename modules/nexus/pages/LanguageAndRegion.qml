@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
 import Caelestia.Config
 import qs.components
 import qs.components.controls
@@ -8,6 +10,15 @@ import qs.modules.nexus.common
 
 PageBase {
     id: root
+
+    property string systemLocale: qsTr("Detecting…")
+    property string timezone: qsTr("Detecting…")
+    property string ntpState: ""
+    property string keyboardLayout: ""
+
+    function refreshSystemRegion(): void {
+        localeProc.running = timeProc.running = true;
+    }
 
     // Temperature units (index 0 = Celsius, 1 = Fahrenheit — matches Weather.formatTemp)
     readonly property list<MenuItem> tempItems: [
@@ -31,6 +42,35 @@ PageBase {
 
     title: qsTr("Language & region")
 
+    Component.onCompleted: refreshSystemRegion()
+
+    property Process localeProcess: Process {
+        id: localeProc
+        command: ["localectl", "status"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const locale = text.match(/System Locale:\s*LANG=([^\s]+)/);
+                const layout = text.match(/X11 Layout:\s*([^\s]+)/);
+                root.systemLocale = locale?.[1] ?? Qt.locale().name;
+                root.keyboardLayout = layout?.[1] ?? "";
+            }
+        }
+    }
+
+    property Process timeProcess: Process {
+        id: timeProc
+        command: ["timedatectl", "show", "--property=Timezone", "--property=NTP", "--property=NTPSynchronized"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const zone = text.match(/Timezone=(.*)/);
+                const ntp = text.match(/NTP=(.*)/);
+                const synced = text.match(/NTPSynchronized=(.*)/);
+                root.timezone = zone?.[1] || qsTr("Unknown");
+                root.ntpState = ntp?.[1] === "yes" ? (synced?.[1] === "yes" ? qsTr("Synchronized") : qsTr("Enabled")) : qsTr("Disabled");
+            }
+        }
+    }
+
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
@@ -43,7 +83,6 @@ PageBase {
             text: qsTr("Language")
         }
 
-        // Read-only: the shell follows the system locale (no in-shell translations yet)
         ConnectedRect {
             Layout.fillWidth: true
             first: true
@@ -72,7 +111,7 @@ PageBase {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Follows your system locale (%1)").arg(Qt.locale().name)
+                        text: qsTr("Shell and applications follow the system locale")
                         color: Colours.palette.m3outline
                         font: Tokens.font.label.small
                         elide: Text.ElideRight
@@ -80,11 +119,41 @@ PageBase {
                 }
 
                 StyledText {
-                    text: Qt.locale().nativeLanguageName || Qt.locale().name
+                    text: root.systemLocale
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.small
                 }
             }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: Tokens.spacing.medium
+            spacing: Tokens.spacing.medium
+
+            IconTextButton {
+                Layout.fillWidth: true
+                icon: "translate"
+                text: qsTr("Language & formats")
+                type: ButtonBase.Filled
+                onClicked: Quickshell.execDetached(["kcmshell6", "kcm_regionandlang"])
+            }
+            IconTextButton {
+                Layout.fillWidth: true
+                icon: "keyboard"
+                text: qsTr("Keyboard layouts")
+                type: IconTextButton.Tonal
+                onClicked: Quickshell.execDetached(["kcmshell6", "kcm_keyboard"])
+            }
+        }
+
+        InfoRow {
+            Layout.topMargin: Tokens.spacing.small
+            first: true
+            last: true
+            icon: "keyboard_alt"
+            label: qsTr("Active keyboard layout")
+            value: root.keyboardLayout || qsTr("System default")
         }
 
         // Weather
@@ -92,41 +161,43 @@ PageBase {
             text: qsTr("Weather")
         }
 
-        // Placeholder until the map-based location picker lands
         ConnectedRect {
             Layout.fillWidth: true
             first: true
             last: true
-            implicitHeight: comingSoon.implicitHeight + Tokens.padding.extraLarge * 2
+            implicitHeight: locationLayout.implicitHeight + Tokens.padding.large * 2
 
-            ColumnLayout {
-                id: comingSoon
+            RowLayout {
+                id: locationLayout
 
-                anchors.centerIn: parent
-                width: parent.width - Tokens.padding.largeIncreased * 2
-                spacing: Tokens.padding.extraSmall
+                anchors.fill: parent
+                anchors.margins: Tokens.padding.large
+                spacing: Tokens.spacing.medium
 
-                MaterialIcon {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "map"
-                    color: Colours.palette.m3outlineVariant
-                    fontStyle: Tokens.font.icon.extraLarge
-                }
+                StyledTextField {
+                    id: weatherLocation
 
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("Location picker coming soon")
-                    color: Colours.palette.m3outlineVariant
-                    font: Tokens.font.title.small
-                }
-
-                StyledText {
                     Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
-                    text: qsTr("Choose your weather location on a map in a future update")
-                    color: Colours.palette.m3outlineVariant
-                    font: Tokens.font.body.small
+                    placeholderText: qsTr("City or latitude,longitude")
+                    leadingIcon: "location_on"
+                    text: GlobalConfig.services.weatherLocation
+                    emptyIsValid: true
+                    supportingText: qsTr("Leave empty to detect your location automatically")
+                    onAccepted: saveLocation()
+
+                    function saveLocation(): void {
+                        GlobalConfig.services.weatherLocation = text.trim();
+                        Weather.reload();
+                        focus = false;
+                    }
+                }
+
+                IconTextButton {
+                    Layout.alignment: Qt.AlignTop
+                    icon: "save"
+                    text: qsTr("Save")
+                    type: ButtonBase.Filled
+                    onClicked: weatherLocation.saveLocation()
                 }
             }
         }
@@ -161,12 +232,42 @@ PageBase {
 
         SelectRow {
             first: true
-            last: true
             label: qsTr("Clock format")
             subtext: qsTr("How times are shown across the shell")
             menuItems: root.clockItems
             active: root.clockItems[GlobalConfig.services.useTwelveHourClock ? 1 : 0]
             onSelected: item => GlobalConfig.services.useTwelveHourClock = root.clockItems.indexOf(item) === 1
+        }
+
+        InfoRow {
+            icon: "public"
+            label: qsTr("Time zone")
+            value: root.timezone
+        }
+
+        InfoRow {
+            last: true
+            icon: "sync"
+            label: qsTr("Network time")
+            value: root.ntpState
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: Tokens.spacing.medium
+            spacing: Tokens.spacing.medium
+            IconTextButton {
+                icon: "schedule"
+                text: qsTr("Date & time settings")
+                type: ButtonBase.Filled
+                onClicked: Quickshell.execDetached(["kcmshell6", "kcm_clock"])
+            }
+            IconTextButton {
+                icon: "refresh"
+                text: qsTr("Refresh")
+                type: IconTextButton.Tonal
+                onClicked: root.refreshSystemRegion()
+            }
         }
     }
 }

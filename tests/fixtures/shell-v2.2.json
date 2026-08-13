@@ -1,0 +1,9 @@
+{
+    "bar": {
+        "status": {
+            "showAudio": false,
+            "showKbLayout": true,
+            "showMicrophone": false
+        }
+    }
+}

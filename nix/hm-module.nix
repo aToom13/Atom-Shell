@@ -9,35 +9,35 @@ self: {
   cli-default = self.inputs.caelestia-cli.packages.${system}.default;
   shell-default = self.packages.${system}.with-cli;
 
-  cfg = config.programs.caelestia;
+  cfg = config.programs.atomshell;
 in {
   imports = [
     (lib.mkRenamedOptionModule ["programs" "caelestia" "environment"] ["programs" "caelestia" "systemd" "environment"])
   ];
   options = with lib; {
-    programs.caelestia = {
-      enable = mkEnableOption "Enable Caelestia shell";
+    programs.atomshell = {
+      enable = mkEnableOption "Enable Atom Shell";
       package = mkOption {
         type = types.package;
         default = shell-default;
-        description = "The package of Caelestia shell";
+        description = "The Atom Shell runtime package";
       };
       systemd = {
         enable = mkOption {
           type = types.bool;
           default = true;
-          description = "Enable the systemd service for Caelestia shell";
+          description = "Enable the systemd service for Atom Shell";
         };
         target = mkOption {
           type = types.str;
           description = ''
-            The systemd target that will automatically start the Caelestia shell.
+            The systemd target that will automatically start Atom Shell.
           '';
           default = config.wayland.systemd.target;
         };
         environment = mkOption {
           type = types.listOf types.str;
-          description = "Extra Environment variables to pass to the Caelestia shell systemd service.";
+          description = "Extra environment variables for the Atom Shell systemd service.";
           default = [];
           example = [
             "QT_QPA_PLATFORMTHEME=gtk3"
@@ -47,12 +47,12 @@ in {
       settings = mkOption {
         type = types.attrsOf types.anything;
         default = {};
-        description = "Caelestia shell settings";
+        description = "Atom Shell settings (stored in the Caelestia-compatible schema)";
       };
       extraConfig = mkOption {
         type = types.str;
         default = "";
-        description = "Caelestia shell extra configs written to shell.json";
+        description = "Extra Atom Shell configuration written to shell.json";
       };
       cli = {
         enable = mkEnableOption "Enable Caelestia CLI";
@@ -80,9 +80,9 @@ in {
     shell = cfg.package;
   in
     lib.mkIf cfg.enable {
-      systemd.user.services.caelestia = lib.mkIf cfg.systemd.enable {
+      systemd.user.services.atomshell = lib.mkIf cfg.systemd.enable {
         Unit = {
-          Description = "Caelestia Shell Service";
+          Description = "Atom Shell Service";
           After = [cfg.systemd.target];
           PartOf = [cfg.systemd.target];
           X-Restart-Triggers = lib.mkIf (cfg.settings != {}) [
@@ -92,7 +92,7 @@ in {
 
         Service = {
           Type = "exec";
-          ExecStart = "${shell}/bin/caelestia-shell";
+          ExecStart = "${shell}/bin/atomshell -n";
           Restart = "on-failure";
           RestartSec = "5s";
           TimeoutStopSec = "5s";

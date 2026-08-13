@@ -92,7 +92,7 @@ Singleton {
                 active: net[0] === "yes",
                 strength: parseInt(net[1] || "0", 10) || 0,
                 frequency: parseInt(net[2] || "0", 10) || 0,
-                ssid: (net[3]?.replace(rep2, ":") ?? "").trim(),
+                ssid: (net[3]?.replace(rep2, ":") ?? ""),
                 bssid: (net[4]?.replace(rep2, ":") ?? "").trim(),
                 security: (net[5] ?? "").trim()
             };

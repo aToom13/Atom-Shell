@@ -131,11 +131,11 @@ Item {
                 required property int index
 
                 name: `traymenu${index}`
-                sourceComponent: trayMenuComp
+                sourceComponent: modelData?.menu ? trayMenuComp : null
 
                 Connections {
                     function onHasCurrentChanged(): void {
-                        if (root.popouts.hasCurrent && trayMenu.shouldBeActive) {
+                        if (root.popouts.hasCurrent && trayMenu.shouldBeActive && trayMenu.modelData?.menu) {
                             trayMenu.sourceComponent = null;
                             trayMenu.sourceComponent = trayMenuComp;
                         }
@@ -149,7 +149,7 @@ Item {
 
                     TrayMenu {
                         popouts: root.popouts
-                        trayItem: trayMenu.modelData.menu // qmllint disable unresolved-type
+                        trayItem: trayMenu.modelData?.menu // qmllint disable unresolved-type
                     }
                 }
             }

@@ -119,7 +119,6 @@ PageBase {
 
         StepperRow {
             first: true
-            last: true
             label: qsTr("Drag threshold")
             subtext: qsTr("Pixels dragged before the dashboard opens")
             value: Config.dashboard.dragThreshold
@@ -127,6 +126,37 @@ PageBase {
             to: 200
             stepSize: 5
             onMoved: v => GlobalConfig.dashboard.dragThreshold = v
+        }
+
+        StepperRow {
+            label: qsTr("Media refresh")
+            subtext: qsTr("Playback position update interval (ms)")
+            value: GlobalConfig.dashboard.mediaUpdateInterval
+            from: 100
+            to: 2000
+            stepSize: 50
+            onMoved: v => GlobalConfig.dashboard.mediaUpdateInterval = Math.round(v)
+        }
+
+        StepperRow {
+            label: qsTr("Animated media speed")
+            subtext: qsTr("Timing adjustment used for animated cover art")
+            value: Config.general.mediaGifSpeedAdjustment
+            from: 50
+            to: 1000
+            stepSize: 25
+            onMoved: v => GlobalConfig.general.mediaGifSpeedAdjustment = v
+        }
+
+        StepperRow {
+            last: true
+            label: qsTr("Performance refresh")
+            subtext: qsTr("System statistics update interval (ms)")
+            value: GlobalConfig.dashboard.resourceUpdateInterval
+            from: 250
+            to: 10000
+            stepSize: 250
+            onMoved: v => GlobalConfig.dashboard.resourceUpdateInterval = Math.round(v)
         }
     }
 }

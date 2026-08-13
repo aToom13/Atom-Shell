@@ -6,12 +6,24 @@ import Quickshell
 import Quickshell.Widgets
 import Caelestia.Config
 import qs.components
+import qs.components.controls
 import qs.services
 import qs.utils
 import qs.modules.nexus.common
 
 PageBase {
     id: root
+
+    property string query
+    property string filter: "all"
+
+    readonly property list<DesktopEntry> filteredApps: [...DesktopEntries.applications.values].filter(app => {
+        const q = query.trim().toLowerCase();
+        const searchMatch = !q || `${app.name} ${app.id} ${app.comment ?? ""} ${app.genericName ?? ""}`.toLowerCase().includes(q);
+        const favourite = Strings.testRegexList(GlobalConfig.launcher.favouriteApps, app.id);
+        const hidden = Strings.testRegexList(GlobalConfig.launcher.hiddenApps, app.id);
+        return searchMatch && (filter === "all" || (filter === "favourites" && favourite) || (filter === "hidden" && hidden));
+    }).sort((a, b) => a.name.localeCompare(b.name))
 
     title: qsTr("All apps")
     isSubPage: true
@@ -22,10 +34,28 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
+        StyledTextField {
+            Layout.fillWidth: true
+            Layout.bottomMargin: Tokens.spacing.medium
+            placeholderText: qsTr("Search apps")
+            leadingIcon: "search"
+            trailingIcon: text ? "close" : ""
+            onTextChanged: root.query = text
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.bottomMargin: Tokens.spacing.large
+            spacing: Tokens.spacing.medium
+            FilterButton { filterValue: "all"; buttonText: qsTr("All (%1)").arg(DesktopEntries.applications.values.length); buttonIcon: "apps" }
+            FilterButton { filterValue: "favourites"; buttonText: qsTr("Favourites"); buttonIcon: "favorite" }
+            FilterButton { filterValue: "hidden"; buttonText: qsTr("Hidden"); buttonIcon: "visibility_off" }
+        }
+
         Repeater {
             id: list
 
-            model: [...DesktopEntries.applications.values].sort((a, b) => a.name.localeCompare(b.name))
+            model: root.filteredApps
 
             ConnectedRect {
                 id: appItem
@@ -90,6 +120,13 @@ PageBase {
                     }
 
                     MaterialIcon {
+                        visible: Strings.testRegexList(GlobalConfig.launcher.hiddenApps, appItem.modelData.id)
+                        text: "visibility_off"
+                        color: Colours.palette.m3outline
+                        fontStyle: Tokens.font.icon.small
+                    }
+
+                    MaterialIcon {
                         text: "chevron_right"
                         color: Colours.palette.m3onSurfaceVariant
                         fontStyle: Tokens.font.icon.medium
@@ -97,5 +134,25 @@ PageBase {
                 }
             }
         }
+
+        StyledText {
+            Layout.fillWidth: true
+            visible: root.filteredApps.length === 0
+            text: qsTr("No apps match the current search and filter")
+            horizontalAlignment: Text.AlignHCenter
+            color: Colours.palette.m3outline
+            font: Tokens.font.body.medium
+        }
+    }
+
+    component FilterButton: IconTextButton {
+        required property string filterValue
+        required property string buttonText
+        required property string buttonIcon
+        Layout.fillWidth: true
+        text: buttonText
+        icon: buttonIcon
+        type: root.filter === filterValue ? ButtonBase.Filled : IconTextButton.Tonal
+        onClicked: root.filter = filterValue
     }
 }

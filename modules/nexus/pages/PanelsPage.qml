@@ -13,6 +13,54 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
+        SectionHeader {
+            first: true
+            text: qsTr("Shell visibility")
+        }
+
+        ToggleRow {
+            first: true
+            last: true
+            text: qsTr("Show over fullscreen apps")
+            subtext: qsTr("Allow panels and overlays to appear above fullscreen windows")
+            checked: Config.general.showOverFullscreen
+            onToggled: GlobalConfig.general.showOverFullscreen = checked
+        }
+
+        SectionHeader { text: qsTr("Panel geometry") }
+
+        StepperRow {
+            first: true
+            label: qsTr("Edge thickness")
+            subtext: qsTr("Reserved screen-edge area (px)")
+            value: Config.border.thickness
+            from: Config.border.minThickness
+            to: 40
+            stepSize: 1
+            onMoved: v => GlobalConfig.border.thickness = Math.round(v)
+        }
+
+        StepperRow {
+            label: qsTr("Outer rounding")
+            value: Config.border.rounding
+            from: 0
+            to: 80
+            stepSize: 1
+            onMoved: v => GlobalConfig.border.rounding = Math.round(v)
+        }
+
+        StepperRow {
+            last: true
+            label: qsTr("Shape smoothing")
+            value: Config.border.smoothing
+            from: 0
+            to: 80
+            stepSize: 1
+            onMoved: v => GlobalConfig.border.smoothing = Math.round(v)
+        }
+
+        SectionHeader { text: qsTr("Panels") }
+
         NavRow {
             first: true
             icon: "dashboard"

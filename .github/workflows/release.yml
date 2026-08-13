@@ -26,18 +26,13 @@ jobs:
             --exclude='flake.nix' \
             . release
           echo "$GITHUB_SHA" > release/REVISION
-          tar -czf caelestia-shell-${{ github.ref_name }}.tar.gz release
-          cp caelestia-shell-${{ github.ref_name }}.tar.gz caelestia-shell-latest.tar.gz
+          tar -czf atom-shell-${{ github.ref_name }}.tar.gz release
+          cp atom-shell-${{ github.ref_name }}.tar.gz atom-shell-latest.tar.gz
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            caelestia-shell-${{ github.ref_name }}.tar.gz
-            caelestia-shell-latest.tar.gz
+            atom-shell-${{ github.ref_name }}.tar.gz
+            atom-shell-latest.tar.gz
           generate_release_notes: true
-      
-      - name: Update stable branch
-        run: |
-          git branch -f stable "$GITHUB_SHA"
-          git push origin stable --force

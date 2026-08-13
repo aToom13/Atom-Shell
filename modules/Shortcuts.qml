@@ -23,6 +23,14 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "help"
+        description: "Open the themed keyboard shortcut reference"
+        onPressed: WindowFactory.createForPage(PageRegistry.shortcutsPageIndex)
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "showall"
         description: "Toggle launcher, dashboard and osd"
         onPressed: {
@@ -140,7 +148,25 @@ Scope {
             WindowFactory.create();
         }
 
+        function openPage(page: int): void {
+            if (page >= 0 && page < PageRegistry.pages.length)
+                WindowFactory.createForPage(page);
+        }
+
+        function openSubPage(page: int, subPage: int): void {
+            if (page >= 0 && page < PageRegistry.pages.length && subPage >= 0)
+                WindowFactory.createForSubPage(page, subPage);
+        }
+
         target: "nexus"
+    }
+
+    IpcHandler {
+        function open(): void {
+            WindowFactory.createForPage(PageRegistry.shortcutsPageIndex);
+        }
+
+        target: "help"
     }
 
     IpcHandler {

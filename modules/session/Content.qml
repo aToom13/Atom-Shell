@@ -46,7 +46,7 @@ Column {
         command: Config.session.commands.shutdown
 
         KeyNavigation.up: logout
-        KeyNavigation.down: hibernate
+        KeyNavigation.down: windows
     }
 
     AnimatedImage {
@@ -62,10 +62,10 @@ Column {
     }
 
     SessionButton {
-        id: hibernate
+        id: windows
 
-        icon: Config.session.icons.hibernate
-        command: Config.session.commands.hibernate
+        icon: "window"
+        command: ["sudo", "-n", "/usr/local/bin/reboot-to-windows"]
 
         KeyNavigation.up: shutdown
         KeyNavigation.down: reboot
@@ -77,7 +77,7 @@ Column {
         icon: Config.session.icons.reboot
         command: Config.session.commands.reboot
 
-        KeyNavigation.up: hibernate
+        KeyNavigation.up: windows
     }
 
     component SessionButton: IconButton {
