@@ -8,7 +8,7 @@ Saf QML masaüstü bileşenlerini, 15 sayfalık etkileşimli Nexus ayarlar merke
 
 ---
 
-## 📸 Ekran Görüntüleri ve Arayüz Bileşenleri
+## Ekran Görüntüleri ve Arayüz Bileşenleri
 
 Aşağıdaki görüntüler, temiz bir kurulumdan doğrudan 1080p olarak yakalanmıştır.
 
@@ -30,20 +30,20 @@ Aşağıdaki görüntüler, temiz bir kurulumdan doğrudan 1080p olarak yakalanm
 
 ---
 
-## ✨ Öne Çıkan Özellikler
+## Öne Çıkan Özellikler
 
-- **🌐 Kapsamlı Çift Dilli Arayüz:** Tüm QML modüllerinde tam Türkçe ve İngilizce desteği (`qsTr()` katalogları ve Nexus üzerinden anında canlı dil değişimi).
-- **🎨 Material You Dinamik Renk Şeması:** Duvar kağıdından otomatik açık/koyu renk paleti türetme, bulanıklık ve şeffaflık kontrolleri.
-- **⚙️ Nexus Ayarlar Merkezi:** Ekran, ağ, Bluetooth, ses, güç, güncellemeler, eklentiler, kısayollar ve uygulamaları yöneten 15 modüler ayar sayfası.
-- **🎮 Oyun Modu ve Kare Üretimi:** Canlı FPS göstergesi (HUD), kompozitör bypass (direct scanout), GPU/CPU performans profili ve 3D test küpü.
-- **📱 Telefon ve Tailscale Entegrasyonu:** Canlı pil durumu, sürükle-bırak dosya transferi, scrcpy ile ekran yansıtma, uzaktan arama yanıtlama ve otomatik cihaz keşfi.
-- **🔋 Akıllı Hazırda Bekletme (Graceful Hibernation):** Pil kritik eşiğe indiğinde geri sayımlı uyarı ve güvenli disk kaydı.
-- **⌨️ Ergonomik Klavye Kısayolları:** Anında filtrelenebilir kısayol HUD arayıcısı (`F12` / `Super + Shift + H`) ve Hyprland Lua tuş atamaları.
-- **🛡️ Güvenli Kurulum ve Geri Alma:** Etkileşimli kurulum sihirbazı, tarih damgalı otomatik yedekler ve veri kaybettirmeyen yapılandırma birleştirme (`merge`).
+- ** Kapsamlı Çift Dilli Arayüz:** Tüm QML modüllerinde tam Türkçe ve İngilizce desteği (`qsTr()` katalogları ve Nexus üzerinden anında canlı dil değişimi).
+- ** Material You Dinamik Renk Şeması:** Duvar kağıdından otomatik açık/koyu renk paleti türetme, bulanıklık ve şeffaflık kontrolleri.
+- ** Nexus Ayarlar Merkezi:** Ekran, ağ, Bluetooth, ses, güç, güncellemeler, eklentiler, kısayollar ve uygulamaları yöneten 15 modüler ayar sayfası.
+- ** Oyun Modu ve Kare Üretimi:** Canlı FPS göstergesi (HUD), kompozitör bypass (direct scanout), GPU/CPU performans profili ve 3D test küpü.
+- ** Telefon ve Tailscale Entegrasyonu:** Canlı pil durumu, sürükle-bırak dosya transferi, scrcpy ile ekran yansıtma, uzaktan arama yanıtlama ve otomatik cihaz keşfi.
+- ** Akıllı Hazırda Bekletme (Graceful Hibernation):** Pil kritik eşiğe indiğinde geri sayımlı uyarı ve güvenli disk kaydı.
+- ** Ergonomik Klavye Kısayolları:** Anında filtrelenebilir kısayol HUD arayıcısı (`F12` / `Super + Shift + H`) ve Hyprland Lua tuş atamaları.
+- ** Güvenli Kurulum ve Geri Alma:** Etkileşimli kurulum sihirbazı, tarih damgalı otomatik yedekler ve veri kaybettirmeyen yapılandırma birleştirme (`merge`).
 
 ---
 
-## 💻 Desteklenen Dağıtımlar
+## Desteklenen Dağıtımlar
 
 | Dağıtım | Runtime | Durum |
 |---|---|---|
@@ -56,7 +56,7 @@ Dağıtıma özel ayrıntılar ve paket listeleri için [Dağıtım Kılavuzuna]
 
 ---
 
-## 🚀 Hızlı Başlangıç ve Kurulum
+## Hızlı Başlangıç ve Kurulum
 
 Atom Shell, bağımlılık kontrolleri içeren otomatik ve etkileşimli bir kurulum betiği sunar:
 
@@ -88,7 +88,7 @@ atomshell doctor
 
 ---
 
-## 🕹️ Kabuk Yönetim Komutları
+## Kabuk Yönetim Komutları
 
 Yönetim komutu `~/.local/bin/atomshell` olarak kurulur:
 
@@ -103,19 +103,16 @@ atomshell log        # Canlı quickshell günlüklerini izle
 
 ---
 
-## 📚 Modüler Belgeler
+## Modüler Belgeler
 
 Ayrıntılı teknik rehberler modüler dökümanlara ayrılmıştır:
 
-- ⚙️ **[Nexus Ayarlar Merkezi Rehberi](docs/nexus.tr.md):** 15 kontrol sayfası ve yapılandırma durumu.
-- 🎮 **[Oyun Modu ve Kare Üretimi Rehberi](docs/game-mode.tr.md):** Frame Generation, oyun içi HUD, VRR ve test küpü.
-- 📱 **[Telefon ve Tailscale Rehberi](docs/phone-tailscale.tr.md):** KDE Connect, kablosuz ADB, pano senkronizasyonu ve SSH otomasyonu.
-- ⌨️ **[Klavye Kısayolları Rehberi](docs/shortcuts.tr.md):** Pencere yönetimi, özel alanlar ve kısayol arama HUD'ı.
-- 🏗️ **[Mimari ve Çalışma Mantığı](docs/ARCHITECTURE.tr.md):** Quickshell yaşam döngüsü, IPC çağrıları ve yapılandırma katmanları.
-- 🐧 **[Dağıtım Notları](docs/DISTROS.tr.md):** Platform gereksinimleri, paket listeleri ve Nix runtime ayrıntıları.
+-  **[Nexus Ayarlar Merkezi Rehberi](docs/nexus.tr.md):** 15 kontrol sayfası ve yapılandırma durumu.
+-  **[Oyun Modu ve Kare Üretimi Rehberi](docs/game-mode.tr.md):** Frame Generation, oyun içi HUD, VRR ve test küpü.
+-  **[Telefon ve Tailscale Rehberi](docs/phone-tailscale.tr.md):** KDE Connect, kablosuz ADB, pano senkronizasyonu ve SSH otomasyonu.
+-  **[Klavye Kısayolları Rehberi](docs/shortcuts.tr.md):** Pencere yönetimi, özel alanlar ve kısayol arama HUD'ı.
+-  **[Mimari ve Çalışma Mantığı](docs/ARCHITECTURE.tr.md):** Quickshell yaşam döngüsü, IPC çağrıları ve yapılandırma katmanları.
+-  **[Dağıtım Notları](docs/DISTROS.tr.md):** Platform gereksinimleri, paket listeleri ve Nix runtime ayrıntıları.
 
 ---
-
-## 📜 Lisans
-
-Bu proje GNU Genel Kamu Lisansı v3.0 (GPL-3.0) altında lisanslanmıştır. Ayrıntılar için [LICENSE](LICENSE) dosyasına bakabilirsiniz. Upstream Caelestia Shell mimarisi ve katkıcılarına ait telif hakları saklıdır.
+Genel Kamu Lisansı v3.0 (GPL-3.0) altında lisanslanmıştır. Ayrıntılar için [LICENSE](LICENSE) dosyasına bakabilirsiniz. Upstream Caelestia Shell mimarisi ve katkıcılarına ait telif hakları saklıdır.
