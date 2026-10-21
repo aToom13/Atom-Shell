@@ -8,7 +8,7 @@ It combines pure QML desktop modules, an interactive 15-page control center, pho
 
 ---
 
-## 📸 Screenshots & Desktop Components
+## Screenshots & Desktop Components
 
 All screenshots are captured natively at 1080p from a clean installation.
 
@@ -30,20 +30,20 @@ All screenshots are captured natively at 1080p from a clean installation.
 
 ---
 
-## ✨ Features
+## Features
 
-- **🌐 Comprehensive Bilingual UI:** Full English and Turkish support across all QML modules (`qsTr()` catalogs and live language switching in Nexus).
-- **🎨 Material You Dynamic Theming:** Wallpaper-derived color schemes, custom accent palettes, blur, and opacity controls.
-- **⚙️ Nexus Control Center:** 15 modular setting panels managing displays, networks, Bluetooth, audio, power, updates, plugins, shortcuts, and apps.
-- **🎮 Game Mode & Frame Generation:** Real-time FPS overlay HUD, direct scanout passthrough, GPU/CPU performance governor, and 3D test cube.
-- **📱 Phone & Tailscale Integration:** Live battery state, drag-and-drop file transfers, scrcpy screen mirroring, remote call answering, and mesh discovery.
-- **🔋 Graceful Low-Battery Hibernation:** Multi-stage countdown and secure snapshot to disk before battery exhaustion.
-- **⌨️ Ergonomic Keyboard Shortcuts:** Interactive search HUD (`F12` / `Super + Shift + H`) and conflict-free Hyprland Lua keybindings.
-- **🛡️ Safe Setup & Rollbacks:** Automated interactive installer, zero data loss policy, timestamped backups, and non-destructive configuration merges.
+- ** Comprehensive Bilingual UI:** Full English and Turkish support across all QML modules (`qsTr()` catalogs and live language switching in Nexus).
+- ** Material You Dynamic Theming:** Wallpaper-derived color schemes, custom accent palettes, blur, and opacity controls.
+- ** Nexus Control Center:** 15 modular setting panels managing displays, networks, Bluetooth, audio, power, updates, plugins, shortcuts, and apps.
+- ** Game Mode & Frame Generation:** Real-time FPS overlay HUD, direct scanout passthrough, GPU/CPU performance governor, and 3D test cube.
+- ** Phone & Tailscale Integration:** Live battery state, drag-and-drop file transfers, scrcpy screen mirroring, remote call answering, and mesh discovery.
+- ** Graceful Low-Battery Hibernation:** Multi-stage countdown and secure snapshot to disk before battery exhaustion.
+- ** Ergonomic Keyboard Shortcuts:** Interactive search HUD (`F12` / `Super + Shift + H`) and conflict-free Hyprland Lua keybindings.
+- ** Safe Setup & Rollbacks:** Automated interactive installer, zero data loss policy, timestamped backups, and non-destructive configuration merges.
 
 ---
 
-## 💻 Supported Distributions
+## Supported Distributions
 
 | Distribution | Runtime | Support Level |
 |---|---|---|
@@ -56,7 +56,7 @@ For distribution-specific prerequisites and details, refer to the [Distribution 
 
 ---
 
-## 🚀 Quick Start & Installation
+## Quick Start & Installation
 
 Atom Shell provides an automated, interactive installation script with dependency checks:
 
@@ -88,7 +88,7 @@ atomshell doctor
 
 ---
 
-## 🕹️ Shell Management CLI
+## Shell Management CLI
 
 The `atomshell` management utility is installed to `~/.local/bin/atomshell`:
 
@@ -103,19 +103,16 @@ atomshell log        # Stream live quickshell logs
 
 ---
 
-## 📚 Modular Documentation
+## Modular Documentation
 
 Detailed topics and technical guides are split into dedicated documents:
 
-- ⚙️ **[Nexus Control Center Guide](docs/nexus.md):** Deep dive into the 15 control pages and configuration state.
-- 🎮 **[Game Mode & Optimization Guide](docs/game-mode.md):** Frame Generation, in-game HUD, VRR, and test cube.
-- 📱 **[Phone & Tailscale Integration](docs/phone-tailscale.md):** KDE Connect, wireless ADB, clipboard sync, and SSH automation.
-- ⌨️ **[Keyboard Shortcuts Guide](docs/shortcuts.md):** Window tiling, special workspaces, and shortcut search HUD.
-- 🏗️ **[Architecture & Runtime](docs/ARCHITECTURE.md):** Quickshell lifecycle, IPC mechanisms, and configuration hierarchy.
-- 🐧 **[Distribution Notes](docs/DISTROS.md):** Platform requirements, package lists, and Nix runtime details.
+-  **[Nexus Control Center Guide](docs/nexus.md):** Deep dive into the 15 control pages and configuration state.
+-  **[Game Mode & Optimization Guide](docs/game-mode.md):** Frame Generation, in-game HUD, VRR, and test cube.
+-  **[Phone & Tailscale Integration](docs/phone-tailscale.md):** KDE Connect, wireless ADB, clipboard sync, and SSH automation.
+-  **[Keyboard Shortcuts Guide](docs/shortcuts.md):** Window tiling, special workspaces, and shortcut search HUD.
+-  **[Architecture & Runtime](docs/ARCHITECTURE.md):** Quickshell lifecycle, IPC mechanisms, and configuration hierarchy.
+-  **[Distribution Notes](docs/DISTROS.md):** Platform requirements, package lists, and Nix runtime details.
 
 ---
-
-## 📜 License & Attribution
-
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See [LICENSE](LICENSE) for details. Upstream Caelestia Shell architecture and contributors are acknowledged and preserved.
+preserved.
