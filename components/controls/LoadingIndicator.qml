@@ -18,7 +18,7 @@ MaterialShape {
     property real thisLRotation
     property bool containsIcon
 
-    property bool animated: true
+    property bool animated: visible && !GameMode.reduceAnimations
     property int morphAnimRotation: 60
     property real morphScale: 0.14
     property alias rotateAnimDuration: rotateAnim.duration

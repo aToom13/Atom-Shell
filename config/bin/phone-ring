@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+target="${ATOM_BIN_DIR:-$HOME/.local/bin}/phone-control"
+if [[ -x "$target" ]]; then
+    exec "$target" action ring
+elif command -v phone-control >/dev/null 2>&1; then
+    exec phone-control action ring
+else
+    echo "phone-control not found" >&2
+    exit 1
+fi

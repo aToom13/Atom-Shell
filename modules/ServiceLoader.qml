@@ -7,10 +7,12 @@ Scope {
     Component.onCompleted: {
         // Force certain singletons to load on shell init instead of lazily
 
+        I18n;
         IdleInhibitor;
         GameMode;
         Notifs;
         Players;
+        PhoneService;
         Brightness;
         Weather.reload();
 

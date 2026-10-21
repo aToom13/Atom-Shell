@@ -158,6 +158,17 @@ Item {
             id: vroot
 
             property string source
+            property bool pausedForGame: false
+
+            function syncGameMode(): void {
+                if (GameMode.pauseWallpaper && vid.playbackState === MediaPlayer.PlayingState) {
+                    pausedForGame = true;
+                    vid.pause();
+                } else if (!GameMode.pauseWallpaper && pausedForGame) {
+                    pausedForGame = false;
+                    vid.play();
+                }
+            }
 
             anchors.fill: parent
 
@@ -176,18 +187,12 @@ Item {
                 Connections {
                     target: GameMode
 
-                    function onEnabledChanged(): void {
-                        if (GameMode.enabled)
-                            vid.pause();
-                        else
-                            vid.play();
+                    function onPauseWallpaperChanged(): void {
+                        vroot.syncGameMode();
                     }
                 }
 
-                Component.onCompleted: {
-                    if (GameMode.enabled)
-                        vid.pause();
-                }
+                Component.onCompleted: vroot.syncGameMode()
 
                 opacity: 0
 
@@ -202,6 +207,7 @@ Item {
                 }
 
                 onPlaybackStateChanged: {
+                    vroot.syncGameMode();
                     if (vid.playbackState === MediaPlayer.PlayingState)
                         fadeIn.start();
                 }

@@ -47,6 +47,8 @@ Item {
 
                 text: root.modelData?.name ?? ""
                 font: Tokens.font.body.medium
+                width: desc.width
+                elide: Text.ElideRight
             }
 
             StyledText {
@@ -54,7 +56,7 @@ Item {
 
                 text: root.modelData?.desc ?? ""
                 font: Tokens.font.body.small
-                color: Colours.palette.m3outline
+                color: Colours.palette.m3onSurfaceVariant
 
                 elide: Text.ElideRight
                 width: root.width - icon.width - Tokens.rounding.extraLargeIncreased

@@ -15,8 +15,8 @@ Item {
     required property BarPopouts.Wrapper popouts
     required property matrix4x4 deformMatrix
 
-    readonly property int enabledCards: (idleInhibit.active ? 1 : 0) + (record.active ? 1 : 0) + (toggles.active ? 1 : 0)
-    readonly property real nonAnimHeight: ((idleInhibit.item as IdleInhibit)?.nonAnimHeight ?? 0) + ((record.item as Record)?.nonAnimHeight ?? 0) + ((toggles.item as Toggles)?.implicitHeight ?? 0) + layout.spacing * Math.max(0, enabledCards - 1)
+    readonly property int enabledCards: (Config.utilities.cards.keepAwake && !props.gameModeExpanded ? 1 : 0) + (Config.utilities.cards.recorder && !props.gameModeExpanded ? 1 : 0) + (toggles.active ? 1 : 0) + (props.gameModeExpanded ? 1 : 0)
+    readonly property real nonAnimHeight: (props.gameModeExpanded ? gamePanel.item?.implicitHeight ?? 0 : ((idleInhibit.item as IdleInhibit)?.nonAnimHeight ?? 0) + ((record.item as Record)?.nonAnimHeight ?? 0)) + ((toggles.item as Toggles)?.implicitHeight ?? 0) + layout.spacing * Math.max(0, enabledCards - 1)
 
     implicitWidth: layout.implicitWidth
     implicitHeight: layout.implicitHeight
@@ -32,7 +32,7 @@ Item {
 
             Layout.fillWidth: true
             active: Config.utilities.cards.keepAwake
-            visible: active
+            visible: active && !root.props.gameModeExpanded
 
             sourceComponent: IdleInhibit {
                 objectName: "utilitiesKeepAwake"
@@ -44,12 +44,22 @@ Item {
 
             Layout.fillWidth: true
             active: Config.utilities.cards.recorder
-            visible: active
+            visible: active && !root.props.gameModeExpanded
             z: 1
 
             sourceComponent: Record {
                 objectName: "utilitiesScreenRecorder"
 
+                props: root.props
+                screenState: root.screenState
+            }
+        }
+
+        Loader {
+            id: gamePanel
+            Layout.fillWidth: true
+            visible: root.props.gameModeExpanded
+            sourceComponent: GameModePanel {
                 props: root.props
                 screenState: root.screenState
             }
@@ -67,6 +77,7 @@ Item {
 
                 screenState: root.screenState
                 popouts: root.popouts
+                props: root.props
             }
         }
     }

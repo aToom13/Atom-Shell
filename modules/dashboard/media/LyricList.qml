@@ -13,11 +13,14 @@ import qs.services
 
 Item {
     id: root
+    property bool phoneSource
 
     // Funny binding hack to make lyrics update
     readonly property var _: {
         const p = Players.active;
-        if (p)
+        if (root.phoneSource)
+            Lyrics.setTrack(PhoneService.mediaArtist, PhoneService.mediaTitle, PhoneService.mediaAlbum, PhoneService.mediaDuration);
+        else if (p)
             Lyrics.setTrack(p.trackArtist, p.trackTitle, p.trackAlbum, p.length);
         else
             Lyrics.clearTrack();
@@ -241,7 +244,7 @@ Item {
         Component.onCompleted: {
             currentIndex = Qt.binding(() => {
                 model; // Force update when lyrics change
-                return Lyrics.indexForTime(Players.active?.position ?? 0);
+                return Lyrics.indexForTime(root.phoneSource ? PhoneService.mediaPosition : Players.active?.position ?? 0);
             });
             positionViewAtIndex(currentIndex, ListView.Center);
         }
@@ -263,8 +266,7 @@ Item {
             required property int index
             property real effectScale: ListView.isCurrentItem ? 1 : 0
 
-            anchors.left: lyrics.contentItem.left
-            anchors.right: lyrics.contentItem.right
+            width: ListView.view.width
 
             text: modelData || ". . ."
             color: ListView.isCurrentItem ? Colours.palette.m3primary : mouse.containsMouse ? Colours.palette.m3onSurface : Colours.palette.m3outline
@@ -277,7 +279,7 @@ Item {
                 shadowColor: Colours.palette.m3primary
                 shadowOpacity: 0.5 * lyric.effectScale
                 shadowBlur: 0.6 * lyric.effectScale
-                blur: 0.4 * lyric.effectScale
+                blur: GameMode.disableBlur ? 0 : 0.4 * lyric.effectScale
             }
 
             Behavior on effectScale {
@@ -293,6 +295,10 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
                 onClicked: {
+                    if (root.phoneSource) {
+                        PhoneService.seekMedia(Lyrics.timeForIndex(lyric.index));
+                        return;
+                    }
                     const p = Players.active;
                     if (p)
                         p.position = Lyrics.timeForIndex(lyric.index);

@@ -45,7 +45,7 @@ Variants {
                 asynchronous: true
 
                 anchors.fill: parent
-                active: Config.background.wallpaperEnabled
+                active: Config.background.wallpaperEnabled && !GameMode.ultraEnabled
 
                 sourceComponent: Wallpaper {}
             }
@@ -61,7 +61,7 @@ Variants {
             id: clockLoader
 
             asynchronous: true
-            active: Config.background.desktopClock.enabled
+            active: Config.background.desktopClock.enabled && !GameMode.hideDesktopClock
 
             anchors.margins: Tokens.padding.extraLargeIncreased
             anchors.leftMargin: Tokens.padding.extraLargeIncreased + Tokens.sizes.bar.innerWidth + Math.max(Tokens.padding.small, Config.border.thickness)

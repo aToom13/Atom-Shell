@@ -17,6 +17,11 @@ Item {
             currentItem.destroy();
 
         const comp = PageCompRegistry.pageComps[idx] ?? PageCompRegistry.placeholderComp;
+        if (idx === PageRegistry.shortcutsPageIndex) {
+            currentItem = comp.createObject(container, { nState });
+            currentItem.anchors.fill = container;
+            return;
+        }
         const incubator = comp.incubateObject(container, {
             nState
         });

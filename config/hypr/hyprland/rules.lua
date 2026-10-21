@@ -125,7 +125,7 @@ hl.window_rule({
     suppress_event   = "activate activatefocus",
 })
 hl.window_rule({
-    match            = { initial_title = "Spotify( %(?Free%)?)?" },
+    match            = { initial_title = "Spotify( [(]?Free[)]?)?" },
     workspace        = "special:music silent",
     no_initial_focus = true,
     suppress_event   = "activate activatefocus",
@@ -157,3 +157,4 @@ hl.layer_rule({ match = { namespace = "launcher" }, animation = "popin 80%", blu
 -- Shell
 hl.layer_rule({ match = { namespace = "caelestia-(border-exclusion|area-picker)" }, no_anim = true })
 hl.layer_rule({ match = { namespace = "caelestia-(drawers|background)" }, animation = "fade" })
+hl.layer_rule({ match = { namespace = "caelestia-hibernation-dialog" }, animation = "fade", blur = true })

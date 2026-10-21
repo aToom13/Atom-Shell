@@ -16,6 +16,7 @@ StyledRect {
 
     required property ScreenState screenState
     required property BarPopouts.Wrapper popouts
+    required property var props
 
     readonly property var quickToggles: {
         const seenIds = new Set();
@@ -68,6 +69,8 @@ StyledRect {
 
     component QuickToggleRow: ButtonRow {
         property alias model: repeater.model
+
+        Layout.preferredHeight: children.reduce((height, child) => Math.max(height, child.implicitHeight), 0)
 
         Layout.fillWidth: true
         spacing: Tokens.spacing.small
@@ -126,8 +129,10 @@ StyledRect {
                     roleValue: "gameMode"
                     delegate: Toggle {
                         icon: "gamepad"
-                        checked: GameMode.enabled
-                        onClicked: GameMode.enabled = !GameMode.enabled
+                        checked: GameMode.enabled || root.props.gameModeExpanded
+                        isToggle: false
+                        onClicked: root.props.gameModeExpanded = !root.props.gameModeExpanded
+                        Accessible.name: qsTr("Open game profiles and scaling")
                     }
                 }
                 DelegateChoice {

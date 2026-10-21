@@ -61,7 +61,10 @@ ItemList {
 
         onClicked: {
             if (!modelData.active) {
-                NetworkConnection.handleConnect(modelData);
+                NetworkConnection.handleConnect(modelData, null, target => {
+                    root.nState.pendingPasswordNetwork = target;
+                    root.nState.openSubPage(7);
+                });
                 currentSelected = true;
                 root.networkSelected(modelData);
             } else {

@@ -8,6 +8,7 @@ QtObject {
     // Kept explicit so global shortcuts can open this page without depending on
     // translated labels.
     readonly property int shortcutsPageIndex: 8
+    readonly property int gameModePageIndex: 13
 
     readonly property list<var> pages: [
         // Appearance
@@ -34,7 +35,7 @@ QtObject {
         {
             label: qsTr("Connected devices"),
             icon: "devices_other",
-            description: qsTr("Bluetooth, KDE Connect, USB and LAN"),
+            description: qsTr("Bluetooth, KDE Connect and USB"),
             category: "connectivity",
             noFill: true
         },
@@ -94,6 +95,13 @@ QtObject {
             label: qsTr("Language & region"),
             icon: "globe",
             description: qsTr("UI language, weather location, display units"),
+            category: "shell"
+        },
+
+        {
+            label: qsTr("Game Mode"),
+            icon: "gamepad",
+            description: qsTr("Performance, appearance and interruptions"),
             category: "shell"
         },
 

@@ -10,6 +10,7 @@ Item {
     id: root
 
     required property ScreenState screenState
+    readonly property bool hasMedia: !!Players.active || PhoneService.mediaAvailable
 
     implicitWidth: Tokens.sizes.dashboard.mediaTabWidth
     implicitHeight: Tokens.sizes.dashboard.mediaTabHeight
@@ -32,7 +33,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            state: Players.active ? "" : "noMedia"
+            state: root.hasMedia ? "" : "noMedia"
 
             states: State {
                 name: "noMedia"

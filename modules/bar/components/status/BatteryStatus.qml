@@ -16,8 +16,8 @@ MaterialIcon {
                 return "rocket_launch";
             return "balance";
         }
-        return Icons.getBatteryIcon(UPower.displayDevice.percentage, [UPowerDeviceState.Charging, UPowerDeviceState.FullyCharged, UPowerDeviceState.PendingCharge].includes(UPower.displayDevice.state));
+        return Icons.getBatteryIcon(BatteryEstimator.displayPercentage, [UPowerDeviceState.Charging, UPowerDeviceState.FullyCharged, UPowerDeviceState.PendingCharge].includes(UPower.displayDevice.state));
     }
-    color: !UPower.onBattery || UPower.displayDevice.percentage > 0.2 ? colour : Colours.palette.m3error
+    color: !UPower.onBattery || BatteryEstimator.displayPercentage > 0.2 ? colour : Colours.palette.m3error
     fill: 1
 }

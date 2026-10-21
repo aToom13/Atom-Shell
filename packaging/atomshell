@@ -17,6 +17,9 @@ fi
 
 export QML_IMPORT_PATH="$runtime_dir/lib/qt6/qml${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
 export CAELESTIA_LIB_DIR="$runtime_dir/lib/caelestia"
+if [[ "${QT_QPA_PLATFORMTHEME:-}" == "qtengine" || -z "${QT_QPA_PLATFORMTHEME:-}" ]]; then
+    export QT_QPA_PLATFORMTHEME="gtk3"
+fi
 
 qs_runtime() {
     if command -v atomshell-runtime >/dev/null 2>&1; then
@@ -97,7 +100,7 @@ case "${1:-start}" in
         shift
         qs_runtime -c caelestia ipc "$@"
         ;;
-    settings)
+    settings|nexus)
         if command -v caelestia >/dev/null 2>&1; then
             caelestia shell nexus open
         else
@@ -122,7 +125,7 @@ case "${1:-start}" in
 Kullanım: atomshell KOMUT
 
   start | run | stop | restart | status | log
-  settings                 Nexus ayarlarını aç
+  settings | nexus         Nexus ayarlarını aç
   ipc ...                  Quickshell IPC komutu gönder
   update | doctor          Kurulumu güncelle veya denetle
   uninstall | rollback     Kaldır veya bir yedeğe dön

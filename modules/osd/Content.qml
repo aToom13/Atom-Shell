@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Caelestia
 import Caelestia.Config
@@ -14,6 +15,8 @@ Item {
 
     required property Brightness.Monitor monitor
     required property ScreenState screenState
+    required property var controller
+    readonly property var mixer: mixerLoader.item
 
     required property real volume
     required property bool muted
@@ -24,45 +27,40 @@ Item {
     implicitWidth: layout.implicitWidth + Tokens.padding.large + layout.anchors.horizontalCenterOffset * 2
     implicitHeight: layout.implicitHeight + Tokens.padding.large * 2
 
-    ColumnLayout {
+    RowLayout {
         id: layout
 
         anchors.centerIn: parent
         anchors.horizontalCenterOffset: CUtils.clamp(Tokens.padding.large - Config.border.thickness, 0, Tokens.padding.large) / 2
         spacing: Tokens.spacing.medium
 
-        // Speaker volume
-        CustomMouseArea {
-            function onWheel(event: WheelEvent) {
-                if (event.angleDelta.y > 0)
-                    Audio.incrementVolume();
-                else if (event.angleDelta.y < 0)
-                    Audio.decrementVolume();
-            }
-
-            implicitWidth: Tokens.sizes.osd.sliderWidth
-            implicitHeight: Tokens.sizes.osd.sliderHeight
-
-            FilledSlider {
-                anchors.fill: parent
-
-                icon: Icons.getVolumeIcon(value, root.muted)
-                value: root.volume
-                to: GlobalConfig.services.maxVolume
-                onMoved: Audio.setVolume(value)
-            }
+        Loader {
+            id: mixerLoader
+            active: root.controller.expanded
+            visible: active
+            sourceComponent: Mixer { controller: root.controller }
         }
 
-        // Microphone volume
-        WrappedLoader {
-            shouldBeActive: Config.osd.enableMicrophone && (!Config.osd.enableBrightness || !root.screenState.session)
+        ColumnLayout {
+            spacing: Tokens.spacing.medium
 
-            sourceComponent: CustomMouseArea {
+            IconButton {
+                Layout.alignment: Qt.AlignHCenter
+                type: IconButton.Text
+                icon: root.controller.expanded ? "chevron_right" : "tune"
+                Accessible.name: qsTr("Ses mikseri")
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Ses mikseri · Tab")
+                onClicked: root.controller.expanded ? root.controller.closeMixer() : root.controller.openMixer()
+            }
+
+            // Speaker volume
+            CustomMouseArea {
                 function onWheel(event: WheelEvent) {
                     if (event.angleDelta.y > 0)
-                        Audio.incrementSourceVolume();
+                        Audio.incrementVolume();
                     else if (event.angleDelta.y < 0)
-                        Audio.decrementSourceVolume();
+                        Audio.decrementVolume();
                 }
 
                 implicitWidth: Tokens.sizes.osd.sliderWidth
@@ -71,38 +69,64 @@ Item {
                 FilledSlider {
                     anchors.fill: parent
 
-                    icon: Icons.getMicVolumeIcon(value, root.sourceMuted)
-                    value: root.sourceVolume
+                    icon: Icons.getVolumeIcon(value, root.muted)
+                    value: root.volume
                     to: GlobalConfig.services.maxVolume
-                    onMoved: Audio.setSourceVolume(value)
+                    onMoved: Audio.setVolume(value)
                 }
             }
-        }
 
-        // Brightness
-        WrappedLoader {
-            shouldBeActive: Config.osd.enableBrightness
+            // Microphone volume
+            WrappedLoader {
+                shouldBeActive: Config.osd.enableMicrophone && (!Config.osd.enableBrightness || !root.screenState.session)
 
-            sourceComponent: CustomMouseArea {
-                function onWheel(event: WheelEvent) {
-                    const monitor = root.monitor;
-                    if (!monitor)
-                        return;
-                    if (event.angleDelta.y > 0)
-                        monitor.setBrightness(monitor.brightness + GlobalConfig.services.brightnessIncrement);
-                    else if (event.angleDelta.y < 0)
-                        monitor.setBrightness(monitor.brightness - GlobalConfig.services.brightnessIncrement);
+                sourceComponent: CustomMouseArea {
+                    function onWheel(event: WheelEvent) {
+                        if (event.angleDelta.y > 0)
+                            Audio.incrementSourceVolume();
+                        else if (event.angleDelta.y < 0)
+                            Audio.decrementSourceVolume();
+                    }
+
+                    implicitWidth: Tokens.sizes.osd.sliderWidth
+                    implicitHeight: Tokens.sizes.osd.sliderHeight
+
+                    FilledSlider {
+                        anchors.fill: parent
+
+                        icon: Icons.getMicVolumeIcon(value, root.sourceMuted)
+                        value: root.sourceVolume
+                        to: GlobalConfig.services.maxVolume
+                        onMoved: Audio.setSourceVolume(value)
+                    }
                 }
+            }
 
-                implicitWidth: Tokens.sizes.osd.sliderWidth
-                implicitHeight: Tokens.sizes.osd.sliderHeight
+            // Brightness
+            WrappedLoader {
+                shouldBeActive: Config.osd.enableBrightness
 
-                FilledSlider {
-                    anchors.fill: parent
+                sourceComponent: CustomMouseArea {
+                    function onWheel(event: WheelEvent) {
+                        const monitor = root.monitor;
+                        if (!monitor)
+                            return;
+                        if (event.angleDelta.y > 0)
+                            monitor.setBrightness(monitor.brightness + GlobalConfig.services.brightnessIncrement);
+                        else if (event.angleDelta.y < 0)
+                            monitor.setBrightness(monitor.brightness - GlobalConfig.services.brightnessIncrement);
+                    }
 
-                    icon: `brightness_${(Math.round(value * 6) + 1)}`
-                    value: root.brightness
-                    onMoved: root.monitor?.setBrightness(value)
+                    implicitWidth: Tokens.sizes.osd.sliderWidth
+                    implicitHeight: Tokens.sizes.osd.sliderHeight
+
+                    FilledSlider {
+                        anchors.fill: parent
+
+                        icon: `brightness_${(Math.round(value * 6) + 1)}`
+                        value: root.brightness
+                        onMoved: root.monitor?.setBrightness(value)
+                    }
                 }
             }
         }

@@ -7,6 +7,7 @@ import qs.services
 
 Item {
     id: root
+    readonly property bool phoneSource: PhoneService.mediaAvailable && (PhoneService.selectedMediaSource === "phone" || !Players.active || (PhoneService.selectedMediaSource === "auto" && PhoneService.mediaPlaying && !(Players.active?.isPlaying ?? false)))
 
     readonly property list<int> shapePool: [MaterialShape.Circle, MaterialShape.Cookie4Sided, MaterialShape.Cookie6Sided, MaterialShape.Cookie7Sided, MaterialShape.Cookie9Sided, MaterialShape.Cookie12Sided, MaterialShape.Sunny, MaterialShape.VerySunny, MaterialShape.SoftBurst, MaterialShape.Pentagon, MaterialShape.Gem, MaterialShape.Arch, MaterialShape.Arrow, MaterialShape.Pill, MaterialShape.Triangle, MaterialShape.Fan, MaterialShape.Oval]
 
@@ -38,7 +39,7 @@ Item {
     }
 
     FrameAnimation {
-        running: root.visible && root.width > 0 && root.height > 0 && (Players.active?.isPlaying ?? false)
+        running: !GameMode.pauseMediaShapes && !GameMode.reduceAnimations && root.visible && root.width > 0 && root.height > 0 && (root.phoneSource ? PhoneService.mediaPlaying : Players.active?.isPlaying ?? false)
         onTriggered: {
             const dt = frameTime;
             for (let i = 0; i < shapes.count; i++) {

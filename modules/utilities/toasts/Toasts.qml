@@ -14,6 +14,8 @@ Item {
     property bool flag
 
     function shouldShowToast(toast: Toast): bool {
+        if (GameMode.muteToasts)
+            return toast.type === Toast.Warning || toast.type === Toast.Error;
         if (!Notifs.hasFullscreen())
             return true;
         if (Config.utilities.toasts.fullscreen === "all")

@@ -7,8 +7,8 @@ return {
 
     -- Apps
     terminal                   = "kitty",
-    browser                    = "firefox",
-    editor                     = "code",
+    browser                    = "flatpak run app.zen_browser.zen",
+    editor                     = "codium",
     fileExplorer               = "thunar",
     audioSettings              = "pavucontrol",
 
@@ -47,8 +47,8 @@ return {
     inactiveWindowBorderColour = "rgba(" .. scheme.onSurfaceVariant .. "11)",
 
     -- Misc
-    volumeStep                 = 10,
-    volumeMax                  = 100,
+    volumeStep                 = 5,
+    volumeMax                  = 150,
     cursorTheme                = "Bibata-Modern-Classic",
     cursorSize                 = 32,
     sleepGestureCmd            = "systemctl suspend-then-hibernate",
@@ -69,12 +69,12 @@ return {
     kbWindowGroupCycleNext     = "ALT + TAB",
     kbWindowGroupCyclePrev     = "SHIFT + ALT + TAB",
     kbUngroup                  = "SUPER + U",
-    kbToggleGroup              = "SUPER + Comma",
+    kbToggleGroup              = "SUPER + B",
 
     -- Window Action
     kbMoveWindow               = "SUPER + Z",
     kbResizeWindow             = "SUPER + X",
-    kbWindowPip                = "SUPER + ALT + backslash",
+    kbWindowPip                = "SUPER + ALT + P",
     kbPinWindow                = "SUPER + P",
     kbWindowFullscreen         = "SUPER + F",
     kbWindowBorderedFullscreen = "SUPER + ALT + F",

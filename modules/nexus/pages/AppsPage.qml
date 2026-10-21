@@ -27,13 +27,9 @@ PageBase {
     function setSystemDefault(kind: string, app: DesktopEntry): void {
         if (!app)
             return;
-        if (kind === "browser") {
-            Quickshell.execDetached(["xdg-settings", "set", "default-web-browser", app.id]);
-            defaultBrowser = app.id;
-        } else {
-            Quickshell.execDetached(["xdg-mime", "default", app.id, "x-scheme-handler/mailto"]);
-            defaultMail = app.id;
-        }
+        if (defaultWriter.running) return;
+        defaultWriter.command = ["python3", Paths.toLocalFile(Qt.resolvedUrl("../../../utils/default_apps.py")), "set", kind === "browser" ? "Web browser" : "Email", app.id + ".desktop"];
+        defaultWriter.running = true;
     }
 
     title: qsTr("Apps")
@@ -49,6 +45,14 @@ PageBase {
         id: mailProc
         command: ["xdg-mime", "query", "default", "x-scheme-handler/mailto"]
         stdout: StdioCollector { onStreamFinished: root.defaultMail = text.trim() || qsTr("Not set") }
+    }
+    property Process defaultWriteProcess: Process {
+        id: defaultWriter
+        stderr: StdioCollector { id: defaultError }
+        onExited: code => {
+            if (code) Toaster.toast(qsTr("Could not change default app"), defaultError.text.trim(), "error");
+            root.refreshDefaults();
+        }
     }
 
     ColumnLayout {
@@ -128,7 +132,7 @@ PageBase {
             icon: "app_registration"
             text: qsTr("Default app associations")
             subtext: qsTr("File types, links and system defaults")
-            onClicked: Quickshell.execDetached(["kcmshell6", "kcm_componentchooser"])
+            onClicked: root.nState.openSubPage(4)
         }
 
         NavRow {
@@ -136,7 +140,7 @@ PageBase {
             icon: "rocket_launch"
             text: qsTr("Autostart applications")
             subtext: qsTr("Choose which apps start with your session")
-            onClicked: Quickshell.execDetached(["kcmshell6", "kcm_autostart"])
+            onClicked: root.nState.openSubPage(3)
         }
     }
 

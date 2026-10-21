@@ -8,8 +8,10 @@ import qs.utils
 Item {
     id: root
 
-    implicitWidth: Math.round(Tokens.font.body.large.pointSize * 1.2)
-    implicitHeight: Math.round(Tokens.font.body.large.pointSize * 1.2)
+    implicitWidth: Math.round(Tokens.font.body.large.pointSize * 1.6)
+    implicitHeight: Math.round(Tokens.font.body.large.pointSize * 1.6)
+    width: implicitWidth
+    height: implicitHeight
 
     MouseArea {
         anchors.fill: parent
@@ -21,17 +23,19 @@ Item {
     }
 
     Loader {
-        asynchronous: true
+        asynchronous: false
         anchors.centerIn: parent
-        sourceComponent: SysInfo.isDefaultLogo ? caelestiaLogo : distroIcon
+        width: parent.width
+        height: parent.height
+        sourceComponent: atomLogo
     }
 
     Component {
-        id: caelestiaLogo
+        id: atomLogo
 
-        Logo {
-            implicitWidth: Math.round(Tokens.font.body.large.pointSize * 1.6)
-            implicitHeight: Math.round(Tokens.font.body.large.pointSize * 1.6)
+        AtomLogo {
+            anchors.fill: parent
+            colour: Colours.palette.m3primary
         }
     }
 

@@ -86,10 +86,10 @@ Singleton {
         let rule, trEnabled;
         if (Hypr.usingLua) {
             rule = `eval hl.layer_rule({ match = { namespace = "caelestia-drawers" }, %1 = %2 })`;
-            trEnabled = transparency.enabled;
+            trEnabled = transparency.enabled && !GameMode.disableBlur;
         } else {
             rule = "keyword layerrule %1 %2, match:namespace caelestia-drawers";
-            trEnabled = transparency.enabled ? 1 : 0;
+            trEnabled = transparency.enabled && !GameMode.disableBlur ? 1 : 0;
         }
         Hypr.extras.batchMessage([rule.arg("blur").arg(trEnabled), rule.arg("ignore_alpha").arg(Math.max(0, transparency.base - 0.03))]);
     }
@@ -111,6 +111,11 @@ Singleton {
         }
 
         target: Hypr
+    }
+
+    Connections {
+        target: GameMode
+        function onDisableBlurChanged(): void { root.requestReloadHyprRules(); }
     }
 
     FileView {
@@ -147,7 +152,7 @@ Singleton {
     }
 
     component Transparency: QtObject {
-        readonly property bool enabled: Tokens.transparency.enabled
+        readonly property bool enabled: Tokens.transparency.enabled && !GameMode.opaqueShell
         readonly property real base: Math.max(0, Math.min(1, Tokens.transparency.base - (root.light ? 0.1 : 0)))
         readonly property real layers: Math.max(0, Math.min(1, Tokens.transparency.layers))
 

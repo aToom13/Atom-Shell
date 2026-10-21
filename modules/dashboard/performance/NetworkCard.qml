@@ -15,8 +15,9 @@ StyledRect {
     implicitWidth: Tokens.sizes.dashboard.perfNetworkCardWidth
     implicitHeight: Tokens.sizes.dashboard.perfNetworkCardHeight
 
-    Ref {
-        service: NetworkUsage
+    Loader {
+        active: root.visible
+        sourceComponent: Ref { service: NetworkUsage }
     }
 
     ColumnLayout {
@@ -66,6 +67,7 @@ StyledRect {
                 historyLength: NetworkUsage.historyLength
 
                 Connections {
+                    enabled: root.visible
                     function onValuesChanged(): void {
                         sparkline.targetMax = Math.max(NetworkUsage.downloadBuffer.maximum, NetworkUsage.uploadBuffer.maximum, 1024);
                         slideAnim.restart();

@@ -4,11 +4,13 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import qs.services
 
 Singleton {
     id: root
 
     property alias enabled: props.enabled
+    readonly property bool effectiveEnabled: props.enabled || GameMode.inhibitIdle
     readonly property alias enabledSince: props.enabledSince
     property real nowMs: Date.now()
     readonly property int remainingSeconds: props.enabled && props.expiresAtMs > 0
@@ -66,7 +68,7 @@ Singleton {
     }
 
     IdleInhibitor {
-        enabled: props.enabled
+        enabled: root.effectiveEnabled
         window: PanelWindow {
             implicitWidth: 0
             implicitHeight: 0

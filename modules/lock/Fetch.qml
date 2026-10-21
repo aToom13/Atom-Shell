@@ -53,7 +53,7 @@ StyledRect {
 
             MonoText {
                 Layout.fillWidth: true
-                text: "caelestiafetch.sh"
+                text: "atomshellfetch.sh"
                 elide: Text.ElideRight
             }
 
@@ -63,7 +63,7 @@ StyledRect {
                 Layout.preferredHeight: 0
                 active: !iconLoader.active
 
-                sourceComponent: SysInfo.isDefaultLogo ? caelestiaLogo : distroIcon
+                sourceComponent: SysInfo.isDefaultLogo ? atomLogo : distroIcon
             }
         }
 
@@ -78,7 +78,7 @@ StyledRect {
                 Layout.fillHeight: true
                 active: root.width > Tokens.sizes.lock.largeLogoWidth
 
-                sourceComponent: SysInfo.isDefaultLogo ? caelestiaLogo : distroIcon
+                sourceComponent: SysInfo.isDefaultLogo ? atomLogo : distroIcon
             }
 
             ColumnLayout {
@@ -105,7 +105,7 @@ StyledRect {
                         items.push(`UP  : ${SysInfo.uptime}`);
 
                         if (hasBatt)
-                            items.push(`BATT: ${[UPowerDeviceState.Charging, UPowerDeviceState.FullyCharged, UPowerDeviceState.PendingCharge].includes(UPower.displayDevice.state) ? "(+) " : ""}${Math.round(UPower.displayDevice.percentage * 100)}%`);
+                            items.push(`BATT: ${[UPowerDeviceState.Charging, UPowerDeviceState.FullyCharged, UPowerDeviceState.PendingCharge].includes(UPower.displayDevice.state) ? "(+) " : ""}${BatteryEstimator.displayPercent}%`);
 
                         return items;
                     }
@@ -150,10 +150,11 @@ StyledRect {
     }
 
     Component {
-        id: caelestiaLogo
+        id: atomLogo
 
-        Logo {
+        AtomLogo {
             width: height
+            colour: Colours.palette.m3primary
         }
     }
 

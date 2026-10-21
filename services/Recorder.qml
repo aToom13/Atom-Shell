@@ -7,26 +7,33 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property alias running: props.running
-    readonly property alias paused: props.paused
-    readonly property alias elapsed: props.elapsed
+    property var controller: null
+    readonly property bool running: controller?.recording ?? props.running
+    readonly property bool paused: controller?.paused ?? props.paused
+    readonly property real elapsed: controller?.elapsed ?? props.elapsed
     property bool needsStart
     property list<string> startArgs
     property bool needsStop
     property bool needsPause
 
     function start(extraArgs = []): void {
+        if (controller) {
+            Quickshell.execDetached(["qs", "-c", "caelestia", "ipc", "call", "picker", "openVideo"]);
+            return;
+        }
         needsStart = true;
         startArgs = extraArgs;
         checkProc.running = true;
     }
 
     function stop(): void {
+        if (controller?.recording) { controller.stop(); return; }
         needsStop = true;
         checkProc.running = true;
     }
 
     function togglePause(): void {
+        if (controller?.recording) { controller.togglePause(); return; }
         needsPause = true;
         checkProc.running = true;
     }

@@ -91,7 +91,11 @@ for pair in \
     'CONTRIBUTING.md CONTRIBUTING.tr.md' \
     'SECURITY.md SECURITY.tr.md' \
     'docs/ARCHITECTURE.md docs/ARCHITECTURE.tr.md' \
-    'docs/DISTROS.md docs/DISTROS.tr.md'; do
+    'docs/DISTROS.md docs/DISTROS.tr.md' \
+    'docs/nexus.md docs/nexus.tr.md' \
+    'docs/game-mode.md docs/game-mode.tr.md' \
+    'docs/phone-tailscale.md docs/phone-tailscale.tr.md' \
+    'docs/shortcuts.md docs/shortcuts.tr.md'; do
     read -r english turkish <<< "$pair"
     [[ -s $english && -s $turkish ]] || {
         printf 'Belge dil çifti eksik: %s / %s\n' "$english" "$turkish" >&2

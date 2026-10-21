@@ -58,7 +58,7 @@ if command -v atomshell-runtime >/dev/null 2>&1; then
 elif [[ -d $ATOM_RUNTIME_DIR/lib/qt6/qml/Caelestia ]]; then
     ok "Yerel QML runtime bulundu"
 else
-    bad "Caelestia QML eklenti runtime'ı bulunamadı"
+    bad "Atom Shell QML eklenti runtime'ı bulunamadı"
 fi
 
 json_errors=0

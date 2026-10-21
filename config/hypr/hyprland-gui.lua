@@ -2,9 +2,34 @@
 
 -- Settings
 hl.config({
+    cursor = {
+        no_warps = false,
+        persistent_warps = false,
+    },
+    decoration = {
+        blur = {
+            size = 7,
+        },
+        dim_around = 0.0,
+        dim_special = 0.0,
+        dim_strength = 0.0,
+        shadow = {
+            range = 19,
+        },
+    },
     general = {
         border_size = 2,
         gaps_in = 5,
         gaps_out = 10,
     },
 })
+
+-- Animations
+hl.animation({
+    leaf = "borderangle",
+    enabled = false,
+})
+
+-- Keybinds
+hl.unbind("SUPER + C")
+hl.bind("SUPER + C", hl.dsp.exec_cmd("antigravity-ide"))

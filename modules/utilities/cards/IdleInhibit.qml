@@ -9,7 +9,7 @@ import qs.services
 StyledRect {
     id: root
 
-    readonly property real nonAnimHeight: layout.implicitHeight + durationRow.implicitHeight + Tokens.spacing.medium
+    readonly property real nonAnimHeight: layout.implicitHeight + durationRow.contentHeight + Tokens.spacing.medium
         + (IdleInhibitor.enabled ? activeChip.implicitHeight + activeChip.anchors.topMargin : 0)
         + Tokens.padding.extraLargeIncreased
 
@@ -44,14 +44,14 @@ StyledRect {
             implicitHeight: icon.implicitHeight + Tokens.padding.large
 
             radius: Tokens.rounding.full
-            color: IdleInhibitor.enabled ? Colours.palette.m3secondary : Colours.palette.m3secondaryContainer
+            color: IdleInhibitor.effectiveEnabled ? Colours.palette.m3secondary : Colours.palette.m3secondaryContainer
 
             MaterialIcon {
                 id: icon
 
                 anchors.centerIn: parent
                 text: "coffee"
-                color: IdleInhibitor.enabled ? Colours.palette.m3onSecondary : Colours.palette.m3onSecondaryContainer
+                color: IdleInhibitor.effectiveEnabled ? Colours.palette.m3onSecondary : Colours.palette.m3onSecondaryContainer
                 fontStyle: Tokens.font.icon.large
             }
         }
@@ -69,7 +69,7 @@ StyledRect {
 
             StyledText {
                 Layout.fillWidth: true
-                text: IdleInhibitor.enabled ? qsTr("Preventing sleep mode") : qsTr("Normal power management")
+                text: GameMode.inhibitIdle ? qsTr("Game Mode is preventing sleep") : IdleInhibitor.enabled ? qsTr("Preventing sleep mode") : qsTr("Normal power management")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.small
                 elide: Text.ElideRight
@@ -84,6 +84,10 @@ StyledRect {
 
     ButtonRow {
         id: durationRow
+
+        // ButtonRow ignores effectively hidden children when measuring height.
+        readonly property real contentHeight: children.reduce((height, child) => Math.max(height, child.implicitHeight), 0)
+        height: contentHeight
 
         anchors.top: layout.bottom
         anchors.topMargin: Tokens.spacing.medium

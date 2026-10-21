@@ -7,6 +7,7 @@ import Quickshell.Services.Pipewire
 import Caelestia
 import Caelestia.Config
 import Caelestia.Services
+import qs.services
 
 Singleton {
     id: root
@@ -17,6 +18,145 @@ Singleton {
     property list<PwNode> sinks: []
     property list<PwNode> sources: []
     property list<PwNode> streams: []
+    property var sinkDetails: ({})
+    property var streamRoutes: ({})
+    property bool routesReady
+    property var moveQueue: []
+    readonly property list<PwNode> availableSinks: routesReady ? sinks.filter(n => sinkDetails[n.name]?.available === true) : []
+    readonly property bool routingBusy: routeProcess.running || moveQueue.length > 0
+
+    function outputName(node: PwNode): string {
+        if (!node) return I18n.t("Detecting output…");
+        const port = sinkDetails[node.name]?.port;
+        if (port === "Speaker") return I18n.t("Speaker");
+        if (port === "Headphones") return I18n.t("Headphones");
+        return node.nickname || node.description || node.name;
+    }
+
+    function outputForNodes(nodes: var): PwNode {
+        const name = streamRoutes[nodes[0]?.id]?.sinkName;
+        return sinks.find(n => n.name === name) ?? null;
+    }
+
+    function moveApp(nodes: var, target: PwNode): void {
+        if (routingBusy || !target?.ready || !availableSinks.some(n => n.id === target.id))
+            return;
+        const moves = [];
+        for (const node of nodes) {
+            const route = streamRoutes[node?.id];
+            if (!node?.ready || !route || String(route.serial) !== String(node.properties["object.serial"])) {
+                Toaster.toast(qsTr("Ses çıkışı değiştirilemedi"), qsTr("Uygulamanın ses akışı yenileniyor. Tekrar deneyin."), "error");
+                routeRefresh.restart();
+                return;
+            }
+            moves.push({index: route.index, serial: route.serial, nodeId: node.id, target: target.name});
+        }
+        moveQueue = moves;
+        moveNext();
+    }
+
+    function moveNext(): void {
+        if (!moveQueue.length) {
+            routeRefresh.restart();
+            return;
+        }
+        const next = moveQueue[0];
+        moveQueue = moveQueue.slice(1);
+        const live = streams.find(n => n?.id === next.nodeId && String(n.properties["object.serial"]) === String(next.serial));
+        if (!live || !availableSinks.some(n => n.name === next.target)) {
+            moveQueue = [];
+            Toaster.toast(qsTr("Ses çıkışı değiştirilemedi"), qsTr("Uygulama veya çıkış cihazı artık kullanılabilir değil."), "error");
+            return;
+        }
+        routeProcess.command = ["pactl", "move-sink-input", String(next.index), next.target];
+        routeProcess.running = true;
+    }
+
+    Timer {
+        id: routeRefresh
+        interval: 120
+        onTriggered: {
+            if (routeSnapshot.running) restart();
+            else routeSnapshot.running = true;
+        }
+    }
+
+    Process {
+        id: routeSnapshot
+        command: ["pactl", "-f", "json", "list"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const data = JSON.parse(text);
+                    const details = {};
+                    const names = {};
+                    for (const sink of data.sinks ?? []) {
+                        const port = (sink.ports ?? []).find(p => p.name === sink.active_port);
+                        details[sink.name] = {available: port?.availability !== "not available", port: port?.type ?? ""};
+                        names[sink.index] = sink.name;
+                    }
+                    const routes = {};
+                    for (const input of data.sink_inputs ?? [])
+                        routes[input.properties["object.id"]] = {index: input.index,
+                            serial: input.properties["object.serial"], sinkName: names[input.sink]};
+                    root.sinkDetails = details;
+                    root.streamRoutes = routes;
+                    root.routesReady = true;
+                } catch (error) {
+                    console.warn("Audio routing snapshot:", error);
+                }
+            }
+        }
+        onExited: exitCode => {
+            if (exitCode !== 0) console.warn("pactl audio routing snapshot failed:", exitCode);
+        }
+    }
+
+    Process {
+        id: routeEvents
+        command: ["pactl", "subscribe"]
+        running: true
+        stdout: SplitParser {
+            onRead: line => {
+                if (/ on (sink|sink-input|card|server)( #|$)/.test(line))
+                    routeRefresh.restart();
+            }
+        }
+        onExited: routeReconnect.restart()
+    }
+
+    Timer {
+        id: routeReconnect
+        interval: 2000
+        onTriggered: { routeEvents.running = true; routeRefresh.restart(); }
+    }
+
+    Process {
+        id: routeProcess
+        stderr: StdioCollector { id: routeError }
+        onExited: exitCode => {
+            if (exitCode !== 0) {
+                root.moveQueue = [];
+                Toaster.toast(qsTr("Ses çıkışı değiştirilemedi"), routeError.text.trim() || qsTr("Ses sunucusu isteği reddetti."), "error");
+                routeRefresh.restart();
+            } else root.moveNext();
+        }
+    }
+
+    readonly property var playbackApps: {
+        const groups = new Map();
+        for (const stream of streams) {
+            if (!stream?.ready || stream.properties["media.class"] !== "Stream/Output/Audio"
+                    || stream.properties["application.id"] === "com.github.wwmm.easyeffects")
+                continue;
+            const name = getStreamName(stream);
+            const key = stream.properties["application.id"] || stream.properties["application.name"] || stream.name;
+            if (!groups.has(key))
+                groups.set(key, {key, name, nodes: []});
+            groups.get(key).nodes.push(stream);
+        }
+        return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
+    }
 
     readonly property PwNode sink: Pipewire.defaultAudioSink
     readonly property PwNode source: Pipewire.defaultAudioSource
@@ -154,6 +294,7 @@ Singleton {
     // lazily-loaded singleton is created, so onValuesChanged would never fire.
     Component.onCompleted: {
         refreshNodes();
+        routeRefresh.restart();
         previousSinkName = sink?.description || sink?.name || qsTr("Unknown Device");
         previousSourceName = source?.description || source?.name || qsTr("Unknown Device");
     }
@@ -183,6 +324,17 @@ Singleton {
     }
 
     IpcHandler {
+        function showOsd(): void { ShellState.componentsForActive()?.panels?.osd.showAudio(); }
+        function openMixer(): void { ShellState.componentsForActive()?.panels?.osd.openMixer(); }
+        function closeMixer(): void { ShellState.componentsForActive()?.panels?.osd.closeMixer(); }
+        function adjustMixer(direction: int): void { ShellState.componentsForActive()?.panels?.osd.adjustSelected(direction > 0 ? 1 : -1); }
+        function muteMixer(): void { ShellState.componentsForActive()?.panels?.osd.muteSelected(); }
+        function mixerKey(key: string): void { ShellState.componentsForActive()?.panels?.osd.mixer?.handleKey(key); }
+        function mixerStatus(): string {
+            const panel = ShellState.componentsForActive()?.panels?.osd;
+            return JSON.stringify(Object.assign({open: panel?.expanded ?? false, armed: panel?.keyboardArmed ?? false, panelWidth: panel?.width ?? 0,
+                visible: panel?.shouldBeActive ?? false}, panel?.mixer?.status() ?? {}));
+        }
         function cycleOutput(): void {
             root.cycleNextAudioOutput();
         }

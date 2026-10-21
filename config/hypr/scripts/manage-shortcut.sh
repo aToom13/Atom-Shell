@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-config_home=${XDG_CONFIG_HOME:-$HOME/.config}
-state_file="$config_home/caelestia/custom-shortcuts.json"
-lua_file="$config_home/caelestia/custom-shortcuts.lua"
+state_file="${XDG_CONFIG_HOME:-$HOME/.config}/caelestia/custom-shortcuts.json"
+lua_file="${XDG_CONFIG_HOME:-$HOME/.config}/caelestia/custom-shortcuts.lua"
 mkdir -p "$(dirname "$state_file")"
 
 if [[ ! -f "$state_file" ]]; then

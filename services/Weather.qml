@@ -177,7 +177,7 @@ Singleton {
 
         const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=geocodejson&accept-language=${lang}`;
         const nominatimHeaders = {
-            "User-Agent": `caelestia-shell/${CUtils.version} (+https://github.com/caelestia-dots/shell)`
+            "User-Agent": `Atom-Shell/${CUtils.version} (+https://github.com/aToom13/Atom-Shell)`
         };
 
         Requests.get(nominatimUrl, text => {
@@ -419,4 +419,5 @@ Singleton {
         name: "caelestia.qml.services.weather"
         defaultLogLevel: LoggingCategory.Info
     }
+
 }

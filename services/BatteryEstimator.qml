@@ -20,6 +20,16 @@ import Quickshell.Services.UPower
 Singleton {
     id: root
 
+    readonly property real reserveRatio: 0.05
+
+    function displayPercentageAt(percentage: real, onBattery = UPower.onBattery): real {
+        // The protected reserve is excluded from the display while charging too.
+        return Math.max(0, (Math.min(1, percentage) - reserveRatio) / (1 - reserveRatio));
+    }
+
+    readonly property real displayPercentage: displayPercentageAt(UPower.displayDevice.percentage)
+    readonly property int displayPercent: Math.round(displayPercentage * 100)
+
     // History of [unixMs, watts] samples, oldest first.
     readonly property var history: _history
     property var _history: []
@@ -72,7 +82,7 @@ Singleton {
         root._avgPower1Min = oneMin.length ? oneMin.reduce((acc, s) => acc + s[1], 0) / oneMin.length : 0;
 
         if (UPower.onBattery && _avgPower > minPowerWatts) {
-            const wh = UPower.displayDevice.energy;
+            const wh = Math.max(0, UPower.displayDevice.energy - UPower.displayDevice.energyFull * reserveRatio);
             root._estimateSeconds = Math.round(wh / _avgPower * 3600);
         }
     }

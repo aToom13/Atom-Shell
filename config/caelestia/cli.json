@@ -2,7 +2,7 @@
     "toggles": {
         "games": {
             "steam": {
-                "enable": false,
+                "enable": true,
                 "match": [{"class": "steam"}],
                 "command": ["steam"],
                 "move": true

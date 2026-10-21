@@ -4,3 +4,9 @@
 *.user
 *.log
 .qmlls.ini
+__pycache__/
+*.pyc
+*.lock
+*.sock
+*.bak*
+HibernationCheck*.qml

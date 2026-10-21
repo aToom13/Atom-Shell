@@ -2,141 +2,120 @@
 
 **English** | [Türkçe](README.tr.md)
 
-Atom Shell is a personal Hyprland desktop layer based on Caelestia Shell v2.3, with its own safe installation, update, backup, and rollback workflow. It keeps custom Nexus pages, advanced network diagnostics, device management, and a portable Hyprland configuration in one repository.
+Atom Shell is a modern, responsive desktop shell and configuration framework for [Hyprland](https://hyprland.org), built on top of [Quickshell](https://github.com/outfoxxed/quickshell) and the Caelestia architecture.
 
-> Atom Shell is an independent fork and is not an official Caelestia release. Internal QML namespaces and the `~/.config/caelestia` schema remain unchanged for upstream compatibility.
+It combines pure QML desktop modules, an interactive 15-page control center, phone automation, Tailscale mesh connectivity, advanced power and low-battery hibernation handling, and game mode optimization into a single, cohesive desktop environment.
 
-## Highlights
+---
 
-- Nexus pages for displays, updates, plugins, keyboard shortcuts, power/lock, and detailed service settings
-- Wi-Fi, Ethernet, saved networks, NetworkManager VPN profiles, and v2.3 VPN provider management
-- Live connection data, network/DNS/HTTPS diagnostics, and LAN/USB/KDE Connect discovery
-- Configurable taskbar entries, status icons, quick toggles, and utility panels
-- One-command install, update, diagnostics, uninstall, and rollback
-- Timestamped backups before modifying existing user files
-- Native runtime on Arch/CachyOS and a modern Nix-based Qt/Quickshell runtime on Debian/Ubuntu/Mint
+## 📸 Screenshots & Desktop Components
 
-## Support status
+All screenshots are captured natively at 1080p from a clean installation.
 
-| Distribution | Runtime | Status |
+| Desktop Bar & Workspaces | Application Launcher |
+|:---:|:---:|
+| ![Desktop Bar](assets/screenshots/01-desktop-bar.png) | ![Launcher](assets/screenshots/02-launcher.png) |
+
+| Dashboard Overview | Dashboard Media & Lyrics |
+|:---:|:---:|
+| ![Overview](assets/screenshots/03-dashboard-overview.png) | ![Media](assets/screenshots/04-dashboard-media.png) |
+
+| Phone Integration | System Performance HUD |
+|:---:|:---:|
+| ![Phone](assets/screenshots/05-dashboard-phone.png) | ![Performance](assets/screenshots/06-dashboard-performance.png) |
+
+| Nexus Settings Center | In-Game Performance Panel |
+|:---:|:---:|
+| ![Nexus](assets/screenshots/11-nexus-settings.png) | ![Game Mode](assets/screenshots/15-game-mode-panel.png) |
+
+---
+
+## ✨ Features
+
+- **🌐 Comprehensive Bilingual UI:** Full English and Turkish support across all QML modules (`qsTr()` catalogs and live language switching in Nexus).
+- **🎨 Material You Dynamic Theming:** Wallpaper-derived color schemes, custom accent palettes, blur, and opacity controls.
+- **⚙️ Nexus Control Center:** 15 modular setting panels managing displays, networks, Bluetooth, audio, power, updates, plugins, shortcuts, and apps.
+- **🎮 Game Mode & Frame Generation:** Real-time FPS overlay HUD, direct scanout passthrough, GPU/CPU performance governor, and 3D test cube.
+- **📱 Phone & Tailscale Integration:** Live battery state, drag-and-drop file transfers, scrcpy screen mirroring, remote call answering, and mesh discovery.
+- **🔋 Graceful Low-Battery Hibernation:** Multi-stage countdown and secure snapshot to disk before battery exhaustion.
+- **⌨️ Ergonomic Keyboard Shortcuts:** Interactive search HUD (`F12` / `Super + Shift + H`) and conflict-free Hyprland Lua keybindings.
+- **🛡️ Safe Setup & Rollbacks:** Automated interactive installer, zero data loss policy, timestamped backups, and non-destructive configuration merges.
+
+---
+
+## 💻 Supported Distributions
+
+| Distribution | Runtime | Support Level |
 |---|---|---|
-| Arch Linux | Native Qt 6.9+, Quickshell | Fully supported |
-| CachyOS | Native Qt 6.9+, Quickshell | Fully supported |
-| Debian 13/14 | Nix runtime + apt integration packages | Supported |
-| Ubuntu / Linux Mint | Nix runtime + apt integration packages | Experimental; Hyprland 0.55+ required |
+| **Arch Linux** | Native Qt 6.9+, Quickshell | Tier 1 (Full Native) |
+| **CachyOS** | Native Qt 6.9+, Quickshell | Tier 1 (Full Native) |
+| **Debian 13/14** | Nix runtime + apt integration | Supported |
+| **Ubuntu / Linux Mint** | Nix runtime + apt integration | Supported (Requires Hyprland 0.55+) |
 
-Hyprland 0.55 introduced the Lua configuration API used by this project, so older versions are unsupported. If Ubuntu or Mint ships an older Hyprland, the installer adds a current Nix Hyprland to the user profile; the session manager must also be configured to launch that binary. See [distribution notes](docs/DISTROS.md).
+For distribution-specific prerequisites and details, refer to the [Distribution Guide](docs/DISTROS.md).
 
-## Installation
+---
+
+## 🚀 Quick Start & Installation
+
+Atom Shell provides an automated, interactive installation script with dependency checks:
 
 ```bash
 git clone https://github.com/aToom13/Atom-Shell.git
 cd Atom-Shell
+
+# Interactive installation wizard
+./setup.sh
+```
+
+Alternatively, you can run `./install.sh` with granular command-line flags:
+
+```bash
+# Preview actions without modifying system files
 ./install.sh --dry-run
-./install.sh
+
+# Non-interactive automated install
+./install.sh --non-interactive --config-mode merge
 ```
 
-Do not run the installer as root. It invokes `sudo` visibly only when system packages must be installed.
+### Post-Installation & Health Check
 
-The default `merge` mode preserves existing values in `~/.config/caelestia` and `~/.config/hypr`, adding only missing templates. Known v2.2 `bar.status` settings and legacy Hyprland launch commands are migrated automatically after a full directory backup. To apply the complete desktop configuration from this repository, use:
+Run the built-in diagnostic tool to verify all components and dependencies:
 
 ```bash
-./install.sh --config-mode replace
-```
-
-`replace` backs up both configuration directories first. Other useful options:
-
-```text
---dry-run                 Show the plan without changing anything
---no-packages             Do not invoke a package manager
---no-build                Do not rebuild the Qt/QML runtime
---profile minimal|full    Install core or complete integrations
---runtime auto|native|nix Select the runtime method
---install-nix             Install Nix from the official installer if missing
---config-mode merge|replace|skip
-```
-
-For an automated Debian/Ubuntu/Mint installation:
-
-```bash
-./install.sh --install-nix
-```
-
-## Usage
-
-```bash
-atomshell start
-atomshell stop
-atomshell restart
-atomshell status
-atomshell settings
 atomshell doctor
 ```
 
-If `~/.local/bin` is not in `PATH`, add it to your shell profile:
+---
+
+## 🕹️ Shell Management CLI
+
+The `atomshell` management utility is installed to `~/.local/bin/atomshell`:
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+atomshell start      # Launch Atom Shell in background
+atomshell stop       # Safely stop active shell instance
+atomshell restart    # Reload and restart shell components
+atomshell nexus      # Open Nexus Control Center
+atomshell doctor     # Run dependency and health diagnostics
+atomshell log        # Stream live quickshell logs
 ```
 
-## Update safety
+---
 
-A normal system upgrade does not remove Atom Shell:
+## 📚 Modular Documentation
 
-- Shell sources live in the user-owned `~/.config/quickshell/caelestia` directory.
-- Native compiled plugins live under `~/.local/share/atomshell/runtime`.
-- Package-owned files in `/usr/share` and `/etc/xdg` are never modified.
-- Quickshell selects the user configuration before `/etc/xdg/quickshell/caelestia`.
+Detailed topics and technical guides are split into dedicated documents:
 
-The local plugin must be rebuilt after a Qt or Quickshell ABI change. The safe updater handles this:
+- ⚙️ **[Nexus Control Center Guide](docs/nexus.md):** Deep dive into the 15 control pages and configuration state.
+- 🎮 **[Game Mode & Optimization Guide](docs/game-mode.md):** Frame Generation, in-game HUD, VRR, and test cube.
+- 📱 **[Phone & Tailscale Integration](docs/phone-tailscale.md):** KDE Connect, wireless ADB, clipboard sync, and SSH automation.
+- ⌨️ **[Keyboard Shortcuts Guide](docs/shortcuts.md):** Window tiling, special workspaces, and shortcut search HUD.
+- 🏗️ **[Architecture & Runtime](docs/ARCHITECTURE.md):** Quickshell lifecycle, IPC mechanisms, and configuration hierarchy.
+- 🐧 **[Distribution Notes](docs/DISTROS.md):** Platform requirements, package lists, and Nix runtime details.
 
-```bash
-atomshell update --check
-atomshell update
-```
+---
 
-The updater refuses a dirty Git tree or diverged history, accepts only a fast-forward update, runs smoke tests, and reinstalls with a backup.
+## 📜 License & Attribution
 
-Do not launch the shell directly with `qs -c caelestia` or `caelestia shell`. If a v2.2 system package remains installed, it can load the v2.3 configuration through the old plugin and report `Unknown option bar.statusIcons`. `atomshell start/restart` always selects the project-owned runtime.
-
-## Backup, rollback, and removal
-
-Backups are stored in:
-
-```text
-~/.local/state/atomshell/backups/YYYYMMDD-HHMMSS[-N]/
-```
-
-List or restore a backup with:
-
-```bash
-./rollback.sh
-./rollback.sh ~/.local/state/atomshell/backups/20260813-150000
-```
-
-Uninstalling preserves user configuration by default:
-
-```bash
-atomshell uninstall
-atomshell uninstall --purge-config
-```
-
-System packages installed by the setup are deliberately not removed automatically because other desktop components may use them.
-
-## Repository layout
-
-```text
-assets/, components/, modules/, services/, utils/  Shell sources
-plugin/, extras/                                    Compiled compatibility modules
-config/caelestia/                                   Portable shell configuration templates
-config/hypr/                                        Hyprland Lua configuration and helpers
-scripts/                                            Installation infrastructure
-docs/                                               Architecture and distribution docs
-tests/                                              Static and dry-run validation
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development and upstream merges, [SECURITY.md](SECURITY.md) for the security model, and [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the runtime design.
-
-## Origin and license
-
-Atom Shell is derived from the GPL-3.0-only [Caelestia Shell](https://github.com/caelestia-dots/shell) project and is distributed under the same license. Copyright notices for the original project and its contributors are preserved. See [LICENSE](LICENSE).
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See [LICENSE](LICENSE) for details. Upstream Caelestia Shell architecture and contributors are acknowledged and preserved.

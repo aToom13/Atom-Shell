@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PYTHONPATH="${HOME}/Projeler/TeleApp:${HOME}/.local/share/teleapp${PYTHONPATH:+:$PYTHONPATH}"
+exec /usr/bin/python -m teleapp.panel_cli "$@"

@@ -71,6 +71,18 @@ QtObject {
                 Component {
                     SavedNetworksPage {}
                 }
+                Component {
+                    WifiPasswordPage {}
+                }
+                Component {
+                    LocalNetworkPage {}
+                }
+                Component {
+                    SavedWifiSharePage {}
+                }
+                Component {
+                    NetworkSecurityPage {}
+                }
             }
         },
         Component {
@@ -182,6 +194,12 @@ QtObject {
                 Component {
                     AppInfo {}
                 }
+                Component {
+                    AutostartPage {}
+                }
+                Component {
+                    DefaultAppsPage {}
+                }
             }
         },
         Component {
@@ -193,6 +211,9 @@ QtObject {
                 Component {
                     NotificationsPage {}
                 }
+                Component {
+                    GameModePage {}
+                }
             }
         },
         Component {
@@ -200,6 +221,14 @@ QtObject {
             StackPage {
                 Component {
                     LanguageAndRegion {}
+                }
+            }
+        },
+
+        Component {
+            StackPage {
+                Component {
+                    GameModePage { isSubPage: false }
                 }
             }
         },

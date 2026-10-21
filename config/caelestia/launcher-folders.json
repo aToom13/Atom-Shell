@@ -1,0 +1,33 @@
+[
+  {
+    "id": "1788994178677",
+    "name": "LibreOffice",
+    "icon": "folder",
+    "apps": [
+      "libreoffice-startcenter",
+      "libreoffice-base",
+      "libreoffice-calc",
+      "libreoffice-draw",
+      "libreoffice-impress",
+      "libreoffice-math",
+      "libreoffice-writer"
+    ]
+  },
+  {
+    "id": "1788994828320",
+    "name": "Tools",
+    "icon": "folder",
+    "apps": [
+      "assistant",
+      "qdbusviewer",
+      "linguist",
+      "qv4l2",
+      "qvidcap",
+      "designer",
+      "jconsole-java17-openjdk",
+      "jshell-java17-openjdk",
+      "jconsole-java21-openjdk",
+      "jshell-java21-openjdk"
+    ]
+  }
+]

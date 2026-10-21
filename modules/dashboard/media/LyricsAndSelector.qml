@@ -8,6 +8,18 @@ import qs.components.controls
 import qs.services
 
 Item {
+    id: root
+
+    readonly property bool phoneSource: PhoneService.mediaAvailable && (PhoneService.selectedMediaSource === "phone" || !Players.active || (PhoneService.selectedMediaSource === "auto" && PhoneService.mediaPlaying && !(Players.active?.isPlaying ?? false)))
+    readonly property var sources: {
+        const values = [];
+        for (const player of Players.list)
+            values.push(player);
+        if (PhoneService.mediaAvailable)
+            values.push("phone");
+        return values;
+    }
+
     ColumnLayout {
         id: layout
 
@@ -38,15 +50,23 @@ Item {
         LyricList {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            phoneSource: root.phoneSource
         }
 
         SplitButton {
             Layout.alignment: Qt.AlignHCenter
 
             type: SplitButton.Tonal
-            disabled: !Players.list.length
-            active: menuItems.find(m => m.modelData === Players.active) ?? menuItems[0] ?? null
-            menu.onItemSelected: item => Players.manualActive = (item as PlayerItem).modelData
+            disabled: !root.sources.length
+            active: menuItems.find(m => root.phoneSource ? m.modelData === "phone" : m.modelData === Players.active) ?? menuItems[0] ?? null
+            menu.onItemSelected: item => {
+                if (item.modelData === "phone") {
+                    PhoneService.selectedMediaSource = "phone";
+                } else {
+                    PhoneService.selectedMediaSource = "pc";
+                    Players.manualActive = item.modelData;
+                }
+            }
 
             menuItems: playerList.instances
             fallbackIcon: "music_off"
@@ -62,7 +82,7 @@ Item {
             Variants {
                 id: playerList
 
-                model: Players.list
+                model: root.sources
 
                 PlayerItem {}
             }
@@ -70,10 +90,10 @@ Item {
     }
 
     component PlayerItem: MenuItem {
-        required property MprisPlayer modelData
+        required property var modelData
 
-        icon: modelData === Players.active ? "check" : ""
-        text: Players.getIdentity(modelData)
-        activeIcon: "animated_images"
+        icon: (modelData === "phone" ? root.phoneSource : !root.phoneSource && modelData === Players.active) ? "check" : ""
+        text: modelData === "phone" ? PhoneService.deviceName : Players.getIdentity(modelData)
+        activeIcon: modelData === "phone" ? "smartphone" : "animated_images"
     }
 }

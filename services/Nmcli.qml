@@ -8,6 +8,8 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    signal connectivityChanged
+
     property var deviceStatus: null
     property var wirelessInterfaces: []
     property var ethernetInterfaces: []
@@ -662,14 +664,16 @@ Singleton {
             return;
         }
 
-        const isSecure = security && security !== "none";
+        const normalizedSecurity = security === "wpa" ? "wpa-psk" : security;
+        const keyManagement = [root.keyMgmtWpaPsk, "sae"].includes(normalizedSecurity) ? normalizedSecurity : root.keyMgmtWpaPsk;
+        const isSecure = normalizedSecurity && normalizedSecurity !== "none";
 
         // Remove any stale profile with the same name first so we don't collide.
         checkAndDeleteConnection(ssid, () => {
             let cmd = [root.nmcliCommandConnection, "add", root.connectionParamType, root.deviceTypeWifi, root.connectionParamConName, ssid, root.connectionParamIfname, "*", root.connectionParamSsid, ssid, root.connectionParamHidden, hidden ? "yes" : "no"];
 
             if (isSecure) {
-                cmd.push(root.securityKeyMgmt, root.keyMgmtWpaPsk, root.securityPsk, password);
+                cmd.push(root.securityKeyMgmt, keyManagement, root.securityPsk, password);
             }
 
             executeCommand(cmd, result => {
@@ -1458,7 +1462,7 @@ Singleton {
     Timer {
         id: connectionCheckTimer
 
-        interval: 4000
+        interval: 30000
         onTriggered: {
             if (root.pendingConnection) {
                 const connected = root.active && root.active.ssid === root.pendingConnection.ssid;
@@ -1657,7 +1661,12 @@ Singleton {
                 LC_ALL: "C.UTF-8"
             })
         stdout: SplitParser {
-            onRead: root.refreshOnConnectionChange()
+            onRead: line => {
+                if (/connectivity/i.test(line))
+                    root.connectivityChanged();
+                else
+                    root.refreshOnConnectionChange();
+            }
         }
         onExited: monitorRestartTimer.start() // qmllint disable signal-handler-parameters
     }

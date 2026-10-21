@@ -21,8 +21,17 @@ StyledRect {
     readonly property list<var> notifs: Notifs.list.filter(n => n.appName === modelData)
     readonly property list<var> activeNotifs: notifs.filter(n => !n.closed)
     readonly property int notifCount: activeNotifs.length
-    readonly property string image: activeNotifs.find(n => n.image.length > 0)?.image ?? ""
-    readonly property string appIcon: activeNotifs.find(n => n.appIcon.length > 0)?.appIcon ?? ""
+    readonly property string rawImage: activeNotifs.find(n => n.image.length > 0)?.image ?? ""
+    readonly property string image: rawImage.startsWith("image://icon/") ? "" : rawImage
+    readonly property string appIcon: {
+        const directIcon = activeNotifs.find(n => n.appIcon.length > 0)?.appIcon ?? "";
+        if (directIcon && Quickshell.hasThemeIcon(directIcon)) return directIcon;
+        if (rawImage.startsWith("image://icon/")) {
+            const iconName = rawImage.replace("image://icon/", "");
+            if (Quickshell.hasThemeIcon(iconName)) return iconName;
+        }
+        return directIcon;
+    }
     readonly property int urgency: {
         if (activeNotifs.find(n => n.urgency === NotificationUrgency.Critical))
             return NotificationUrgency.Critical;
@@ -126,7 +135,7 @@ StyledRect {
                     asynchronous: true
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: sourceComponent === materialIconComp ? 1 : 0
-                    sourceComponent: root.image ? imageComp : root.appIcon ? appIconComp : materialIconComp
+                    sourceComponent: root.image ? imageComp : (root.appIcon && Quickshell.hasThemeIcon(root.appIcon)) ? appIconComp : materialIconComp
                 }
             }
 

@@ -66,33 +66,39 @@ QtObject {
             return;
         }
 
-        if (network.isSecure) {
+        const needsCredentials = network.isSecure && !/^(?:owe|enhanced\s*open)$/i.test(network.security.trim());
+
+        if (needsCredentials) {
             const hasSavedProfile = Nmcli.hasSavedProfile(network.ssid);
 
-            if (hasSavedProfile) {
-                Nmcli.connectToNetwork(network.ssid, "", network.bssid, null);
-            } else {
-                // Use password check with callback
-                Nmcli.connectToNetworkWithPasswordCheck(network.ssid, network.isSecure, result => {
-                    if (result.needsPassword) {
-                        // Clear pending connection if exists
-                        if (Nmcli.pendingConnection) {
-                            Nmcli.connectionCheckTimer.stop();
-                            Nmcli.immediateCheckTimer.stop();
-                            Nmcli.immediateCheckTimer.checkCount = 0;
-                            Nmcli.pendingConnection = null;
-                        }
-
-                        // Handle password dialog - use session if available, otherwise use callback
-                        if (session && session.network) {
-                            session.network.showPasswordDialog = true;
-                            session.network.pendingNetwork = network;
-                        } else if (onPasswordNeeded) {
-                            onPasswordNeeded(network);
-                        }
-                    }
-                }, network.bssid);
+            if (!hasSavedProfile) {
+                if (session && session.network) {
+                    session.network.showPasswordDialog = true;
+                    session.network.pendingNetwork = network;
+                } else if (onPasswordNeeded) {
+                    onPasswordNeeded(network);
+                }
+                return;
             }
+
+            Nmcli.connectToNetworkWithPasswordCheck(network.ssid, true, result => {
+                if (!result.needsPassword)
+                    return;
+
+                if (Nmcli.pendingConnection) {
+                    Nmcli.connectionCheckTimer.stop();
+                    Nmcli.immediateCheckTimer.stop();
+                    Nmcli.immediateCheckTimer.checkCount = 0;
+                    Nmcli.pendingConnection = null;
+                }
+
+                if (session && session.network) {
+                    session.network.showPasswordDialog = true;
+                    session.network.pendingNetwork = network;
+                } else if (onPasswordNeeded) {
+                    onPasswordNeeded(network);
+                }
+            }, network.bssid);
         } else {
             Nmcli.connectToNetwork(network.ssid, "", network.bssid, null);
         }

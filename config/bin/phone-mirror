@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+target=$(command -v phone-control >/dev/null && phone-control target || "${HOME}/.local/bin/phone-control" target)
+exec /usr/bin/scrcpy --serial "$target" --window-title "Telefon" --stay-awake "$@"

@@ -9,12 +9,16 @@ QtObject {
     property int currentPageIdx
     property list<int> subPageIdxStack
     property bool searchOpen
+    property string shortcutQuery
 
     property string selectedWallpaperCategory
     property BluetoothDevice selectedBtDevice
     property DesktopEntry selectedApp
     property int editingVpnIndex: -1
     property string selectedNetworkSsid
+    property var pendingPasswordNetwork
+    property var selectedSavedWifiProfile
+    property bool revealSavedWifiPassword
     property string selectedEthernetInterface
     property bool networkDetailsFromSaved
 

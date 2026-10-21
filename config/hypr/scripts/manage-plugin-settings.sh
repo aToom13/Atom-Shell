@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-config_home=${XDG_CONFIG_HOME:-$HOME/.config}
-state_file="$config_home/caelestia/plugin-settings.json"
-lua_file="$config_home/caelestia/plugin-settings.lua"
+state_file="${XDG_CONFIG_HOME:-$HOME/.config}/caelestia/plugin-settings.json"
+lua_file="${XDG_CONFIG_HOME:-$HOME/.config}/caelestia/plugin-settings.lua"
 
 generate() {
     local tmp

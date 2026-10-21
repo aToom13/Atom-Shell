@@ -24,8 +24,8 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "help"
-        description: "Open the themed keyboard shortcut reference"
-        onPressed: WindowFactory.createForPage(PageRegistry.shortcutsPageIndex)
+        description: "Toggle the themed keyboard shortcut reference"
+        onPressed: WindowFactory.toggleShortcuts()
     }
 
     // qmllint disable unresolved-type
@@ -140,6 +140,12 @@ Scope {
             return screenState[drawer] ? "1" : "0";
         }
 
+        function setDashboardTab(tab: int): void {
+            const screenState = ShellState.forActive();
+            if (screenState)
+                screenState.dashboardTab = tab;
+        }
+
         target: "drawers"
     }
 
@@ -151,6 +157,11 @@ Scope {
         function openPage(page: int): void {
             if (page >= 0 && page < PageRegistry.pages.length)
                 WindowFactory.createForPage(page);
+        }
+
+        function togglePage(page: int): void {
+            if (page >= 0 && page < PageRegistry.pages.length)
+                WindowFactory.togglePage(page);
         }
 
         function openSubPage(page: int, subPage: int): void {
@@ -167,6 +178,10 @@ Scope {
         }
 
         target: "help"
+
+        function toggle(): void {
+            WindowFactory.toggleShortcuts();
+        }
     }
 
     IpcHandler {

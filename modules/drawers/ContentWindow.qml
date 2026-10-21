@@ -59,6 +59,7 @@ StyledWindow {
     }
 
     onHasFullscreenChanged: {
+        panels.osd.closeMixer();
         screenState.launcher = false;
         screenState.session = false;
         screenState.dashboard = false;
@@ -68,7 +69,7 @@ StyledWindow {
     name: "drawers"
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: (fsTransitionProg > 0 && contentItem.Config.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top
-    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session || panels.osd.expanded ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     mask: hasFullscreen ? emptyRegion : regions
 
@@ -113,6 +114,8 @@ StyledWindow {
         id: focusGrab
 
         active: {
+            if (panels.osd.expanded)
+                return true;
             const s = root.screenState;
             const conf = root.contentItem.Config;
             if ((s.launcher && conf.launcher.enabled) || (s.session && conf.session.enabled) || (s.sidebar && conf.sidebar.enabled))
@@ -125,6 +128,8 @@ StyledWindow {
         }
         windows: [root]
         onCleared: {
+            if (panels.osd.expanded)
+                panels.osd.closeMixer();
             root.screenState.launcher = false;
             root.screenState.session = false;
             root.screenState.sidebar = false;
@@ -146,10 +151,41 @@ StyledWindow {
         }
     }
 
+    DropArea {
+        id: phoneFileDrop
+
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: panels.dashboard.width
+        height: containsDrag ? panels.dashboard.height + root.borderThickness : Math.max(root.borderThickness, 12)
+        z: 1000
+
+        onEntered: drag => {
+            if (!drag.hasUrls) {
+                drag.accepted = false;
+                return;
+            }
+
+            root.screenState.dashboardTab = (Config.dashboard.showDashboard ? 1 : 0) + (Config.dashboard.showMedia ? 1 : 0);
+            root.screenState.dashboard = true;
+            PhoneService.fileDragActive = true;
+            drag.acceptProposedAction();
+        }
+        onExited: PhoneService.fileDragActive = false
+        onDropped: drop => {
+            PhoneService.fileDragActive = false;
+            if (!drop.hasUrls)
+                return;
+            PhoneService.sendFiles(drop.urls);
+            root.screenState.dashboard = false;
+            drop.acceptProposedAction();
+        }
+    }
+
     Item {
         anchors.fill: parent
         opacity: root.surfaceColour.a
-        layer.enabled: true
+        layer.enabled: !GameMode.disableShadows
         layer.effect: MultiEffect {
             shadowEnabled: true
             blurMax: 15
@@ -195,6 +231,18 @@ StyledWindow {
             deformAmount: 0.2
             x: panels.sessionWrapper.x + panels.session.x + bar.implicitWidth
             implicitWidth: panels.session.width
+        }
+
+        PanelBg {
+            panel: panels.sessionWrapper
+            readonly property rect popup: panels.session.hibernationPopupRect
+            readonly property real reveal: panels.session.hibernationPopupOpacity
+            visible: panels.session.visible && reveal > 0
+            x: panels.sessionWrapper.x + panels.session.x + popup.x + popup.width * (1 - reveal) + bar.implicitWidth
+            y: panels.sessionWrapper.y + panels.session.y + popup.y + root.borderThickness
+            implicitWidth: popup.width * reveal
+            implicitHeight: popup.height
+            deformAmount: 0.2
         }
 
         PanelBg {

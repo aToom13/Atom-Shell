@@ -1,8 +1,12 @@
 #include "cutils.hpp"
 
+#include <QtGui/qicon.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <QtQuick/qquickitemgrabresult.h>
 #include <QtQuick/qquickwindow.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qlocale.h>
+#include <QtCore/qtranslator.h>
 #include <qdir.h>
 #include <qfileinfo.h>
 #include <qfuturewatcher.h>
@@ -13,6 +17,18 @@
 Q_LOGGING_CATEGORY(lcCUtils, "caelestia.cutils", QtInfoMsg)
 
 namespace caelestia {
+
+static QTranslator* s_translator = nullptr;
+
+CUtils::CUtils(QObject* parent) : QObject(parent) {
+    if (QIcon::themeName().isEmpty() || QIcon::themeName() == QStringLiteral("hicolor")) {
+        QIcon::setThemeName(QStringLiteral("Papirus-Dark"));
+        QIcon::setFallbackThemeName(QStringLiteral("hicolor"));
+    }
+    QMetaObject::invokeMethod(this, [this]() {
+        loadTranslation();
+    }, Qt::QueuedConnection);
+}
 
 void CUtils::saveItem(QQuickItem* target, const QUrl& path) {
     this->saveItem(target, path, QRect(), QJSValue(), QJSValue());
@@ -220,6 +236,65 @@ QString CUtils::version() const {
 
 QString CUtils::qtVersion() const {
     return QStringLiteral(QT_VERSION_STR);
+}
+
+bool CUtils::loadTranslation(const QString& language) {
+    if (!qApp) return false;
+
+    if (s_translator) {
+        qApp->removeTranslator(s_translator);
+        delete s_translator;
+        s_translator = nullptr;
+    }
+
+    QString lang = language.trimmed();
+    if (lang.isEmpty() || lang == QStringLiteral("auto")) {
+        const QString sys = QLocale::system().name();
+        lang = sys.startsWith(QStringLiteral("tr"), Qt::CaseInsensitive) ? QStringLiteral("tr") : QStringLiteral("en");
+    }
+
+    s_translator = new QTranslator(qApp);
+
+    QString configDir = qEnvironmentVariable("XDG_CONFIG_HOME");
+    if (configDir.isEmpty()) {
+        configDir = QDir::homePath() + QStringLiteral("/.config");
+    }
+
+    QStringList searchDirs = {
+        configDir + QStringLiteral("/quickshell/caelestia/i18n"),
+        configDir + QStringLiteral("/quickshell/caelestia/translations"),
+        QDir::homePath() + QStringLiteral("/.config/quickshell/caelestia/i18n"),
+        QDir::homePath() + QStringLiteral("/.config/quickshell/caelestia/translations"),
+        QDir::currentPath() + QStringLiteral("/i18n"),
+        QDir::currentPath() + QStringLiteral("/translations")
+    };
+
+    const QString atomShellDir = qEnvironmentVariable("ATOM_SHELL_DIR");
+    if (!atomShellDir.isEmpty()) {
+        searchDirs.prepend(atomShellDir + QStringLiteral("/translations"));
+        searchDirs.prepend(atomShellDir + QStringLiteral("/i18n"));
+    }
+
+    bool loaded = false;
+    for (const QString& dir : searchDirs) {
+        if (s_translator->load(QStringLiteral("atom-shell_") + lang, dir) ||
+            s_translator->load(QStringLiteral("qml_") + lang, dir)) {
+            loaded = true;
+            break;
+        }
+    }
+
+    if (loaded) {
+        qApp->installTranslator(s_translator);
+    } else {
+        delete s_translator;
+        s_translator = nullptr;
+    }
+
+    auto* engine = qmlEngine(this);
+    if (engine) engine->retranslate();
+
+    return loaded;
 }
 
 } // namespace caelestia

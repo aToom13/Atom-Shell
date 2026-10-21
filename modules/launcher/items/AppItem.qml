@@ -10,7 +10,8 @@ import qs.modules.launcher.services
 Item {
     id: root
 
-    required property DesktopEntry modelData
+    required property var modelData
+    required property var list
     required property ScreenState screenState
 
     implicitHeight: Tokens.sizes.launcher.itemHeight
@@ -21,8 +22,12 @@ Item {
     StateLayer {
         radius: Tokens.rounding.large
         onClicked: {
-            Apps.launch(root.modelData);
-            root.screenState.launcher = false;
+            if (root.modelData.isFolder)
+                root.list.toggleFolder(root.modelData.id);
+            else {
+                Apps.launch(root.modelData);
+                root.screenState.launcher = false;
+            }
         }
     }
 
@@ -36,7 +41,14 @@ Item {
             id: icon
 
             asynchronous: true
-            source: Quickshell.iconPath(root.modelData?.icon, "image-missing")
+            source: {
+                const iconName = root.modelData?.icon || (root.modelData?.isFolder ? "folder" : "application-x-executable");
+                if (Quickshell.hasThemeIcon(iconName))
+                    return Quickshell.iconPath(iconName);
+                if (root.modelData?.isFolder)
+                    return Quickshell.iconPath("folder", "inode-directory");
+                return Quickshell.iconPath(iconName, "application-x-executable");
+            }
             implicitSize: parent.height * 0.8
 
             anchors.verticalCenter: parent.verticalCenter
@@ -47,7 +59,7 @@ Item {
             anchors.leftMargin: Tokens.spacing.medium
             anchors.verticalCenter: icon.verticalCenter
 
-            implicitWidth: parent.width - icon.width - favouriteIcon.width
+            implicitWidth: parent.width - icon.width - trailingIcon.width
             implicitHeight: name.implicitHeight + comment.implicitHeight
 
             StyledText {
@@ -65,24 +77,25 @@ Item {
                 color: Colours.palette.m3outline
 
                 elide: Text.ElideRight
-                width: root.width - icon.width - favouriteIcon.width - Tokens.rounding.extraLargeIncreased
+                width: root.width - icon.width - trailingIcon.width - Tokens.rounding.extraLargeIncreased
 
                 anchors.top: name.bottom
             }
         }
 
         Loader {
-            id: favouriteIcon
+            id: trailingIcon
 
             asynchronous: true
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
-            active: root.modelData && Strings.testRegexList(GlobalConfig.launcher.favouriteApps, root.modelData.id)
+            active: root.modelData && (root.modelData.isFolder || Strings.testRegexList(GlobalConfig.launcher.favouriteApps, root.modelData.id))
 
             sourceComponent: MaterialIcon {
-                text: "favorite"
-                fill: 1
-                color: Colours.palette.m3primary
+                text: root.modelData.isFolder ? (root.list.openFolderId === root.modelData.id ? "expand_less" : "expand_more") : "favorite"
+                fill: root.modelData.isFolder ? 0 : 1
+                color: root.modelData.isFolder ? Colours.palette.m3onSurfaceVariant : Colours.palette.m3primary
+                fontStyle: Tokens.font.icon.medium
             }
         }
     }

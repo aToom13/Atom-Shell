@@ -5,10 +5,24 @@ clean_field() {
     tr '\t\n' '  ' <<<"$1" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//'
 }
 
+require_nmap() {
+    command -v nmap >/dev/null 2>&1 || {
+        printf 'nmap is required for local network discovery.\n' >&2
+        exit 127
+    }
+}
+
 network_context() {
-    local route iface own cidr gateway
-    route=$(ip -o -4 route show default | head -n 1)
+    local route iface own cidr gateway wifi_iface
+    wifi_iface=$(LC_ALL=C nmcli -t -f DEVICE,TYPE,STATE device status | awk -F: '$2 == "wifi" && $3 == "connected" {print $1; exit}') || wifi_iface=
+    route=
+    # Keep Wi-Fi discovery on Wi-Fi when USB tethering carries internet traffic.
+    if [[ -n "$wifi_iface" ]]; then
+        route=$(ip -o -4 route show default dev "$wifi_iface" | awk 'NR==1 {print}')
+    fi
+    [[ -n "$route" ]] || route=$(ip -o -4 route show default | awk 'NR==1 {print}')
     iface=$(awk '{for (i=1;i<=NF;i++) if ($i=="dev") print $(i+1)}' <<<"$route")
+    [[ -n "$iface" ]] || iface=$wifi_iface
     own=$(awk '{for (i=1;i<=NF;i++) if ($i=="src") print $(i+1)}' <<<"$route")
     gateway=$(awk '{for (i=1;i<=NF;i++) if ($i=="via") print $(i+1)}' <<<"$route")
     [[ -n "$iface" ]] || return 1
@@ -64,21 +78,19 @@ resolve_name() {
 }
 
 quick_services() {
-    local ip=$1 tmp port label result
-    tmp=$(mktemp)
-    for item in '22 ssh' '53 dns' '80 http' '139 netbios' '443 https' '445 smb' '1716 kde-connect' '9100 printer'; do
-        port=${item%% *}; label=${item#* }
-        (nc -z -w 1 "$ip" "$port" >/dev/null 2>&1 && printf '%s\n' "$label" >> "$tmp") &
-    done
-    # One closed port must not cancel all results under `set -e`.
-    wait || true
-    result=$(sort -u "$tmp" | paste -sd ',' -)
-    rm -f -- "$tmp"
-    printf '%s' "$result"
+    local ip=$1
+    nmap -n -Pn -sT --open -T4 --host-timeout 8s \
+        -p 22,53,80,139,443,445,1716,3000,3389,5000,8000,8080,9100 \
+        -oG - "$ip" 2>/dev/null | sed -n 's/.*Ports: //p' | tr ',' '\n' | awk -F/ '
+            BEGIN { names[22]="ssh"; names[53]="dns"; names[80]="http"; names[139]="netbios"; names[443]="https"; names[445]="smb"; names[1716]="kde-connect"; names[3000]="web-app"; names[3389]="rdp"; names[5000]="web-app"; names[8000]="http-alt"; names[8080]="http-proxy"; names[9100]="printer" }
+            $2 == "open" { port=$1 + 0; if (names[port] != "") { printf "%s%s", separator, names[port]; separator="," } }
+            END { print "" }
+        '
 }
 
 lan_scan() {
-    local context iface own cidr gateway network mac state hostname vendor
+    local context iface own cidr gateway network scan_xml ip nmap_name nmap_mac nmap_vendor rest mac state hostname vendor output
+    require_nmap
     context=$(network_context) || { printf 'No active IPv4 network.\n' >&2; exit 1; }
     IFS=$'\t' read -r iface own cidr gateway <<<"$context"
     network=$(python3 - "$own" "$cidr" <<'PY'
@@ -90,44 +102,57 @@ if net.prefixlen < 24:
 print(net)
 PY
 )
-    printf 'Scanning %s on %s…\n' "$network" "$iface" >&2
-    # shellcheck disable=SC2016 # $1 belongs to the inner sh invoked by xargs.
-    python3 - "$network" "$own" <<'PY' | xargs -r -P 64 -n 1 sh -c 'ping -n -c 1 -W 1 "$1" >/dev/null 2>&1 || true' sh
-import ipaddress, sys
-net = ipaddress.ip_network(sys.argv[1], strict=False)
-own = sys.argv[2]
-for address in net.hosts():
-    if str(address) != own:
-        print(address)
-PY
-
+    printf 'Scanning %s on %s with nmap…\n' "$network" "$iface" >&2
+    scan_xml=$(mktemp)
+    nmap -sn -T4 -oX "$scan_xml" "$network" >/dev/null
     mac=$(cat "/sys/class/net/$iface/address" 2>/dev/null || true)
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$own" "$(hostnamectl --static 2>/dev/null || hostname)" "$mac" "$(mac_vendor "$mac")" "this-device" "$(quick_services "$own")"
 
     output=$(mktemp)
-    while read -r ip rest; do
-        [[ "$ip" =~ ^[0-9]+(\.[0-9]+){3}$ && "$ip" != "$own" ]] || continue
-        mac=$(awk '{for (i=1;i<=NF;i++) if ($i=="lladdr") print $(i+1)}' <<<"$rest")
-        state=$(awk '{print $NF}' <<<"$rest")
-        [[ -n "$mac" && "$state" != FAILED && "$state" != INCOMPLETE ]] || continue
+    while IFS=$'\t' read -r ip nmap_name nmap_mac nmap_vendor; do
+        [[ "$ip" != "$own" ]] || continue
         (
-            hostname=$(resolve_name "$ip")
-            vendor=$(mac_vendor "$mac")
+            rest=$(ip neigh show to "$ip" dev "$iface" | head -n 1)
+            mac=${nmap_mac:-$(awk '{for (i=1;i<=NF;i++) if ($i=="lladdr") print $(i+1)}' <<<"$rest")}
+            state=$(awk '{print $NF}' <<<"$rest")
+            hostname=${nmap_name:-$(resolve_name "$ip")}
+            vendor=${nmap_vendor:-$(mac_vendor "$mac")}
             if [[ "$ip" == "$gateway" ]]; then
-                hostname="${hostname/Unknown device/Router / gateway}"
+                hostname="Router / gateway"
+            elif [[ -z "$hostname" || "$hostname" == "Unknown device" ]]; then
+                hostname=${vendor:-"Network device ${ip##*.}"}
             fi
             printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$ip" "$(clean_field "$hostname")" "$mac" "$(clean_field "$vendor")" "${state,,}" "$(quick_services "$ip")" >> "$output"
         ) &
-    done < <(ip neigh show dev "$iface" | sort -V -k1,1)
-    # Individual devices may disappear during a scan. Keep the results from
-    # the devices that did answer instead of failing the complete discovery.
+    done < <(python3 - "$scan_xml" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+
+for host in ET.parse(sys.argv[1]).getroot().findall("host"):
+    if host.find("status").get("state") != "up":
+        continue
+    addresses = {item.get("addrtype"): item for item in host.findall("address")}
+    ipv4 = addresses.get("ipv4")
+    if ipv4 is None:
+        continue
+    mac = addresses.get("mac")
+    hostname = host.find("hostnames/hostname")
+    print("\t".join((
+        ipv4.get("addr", ""),
+        hostname.get("name", "") if hostname is not None else "",
+        mac.get("addr", "") if mac is not None else "",
+        mac.get("vendor", "") if mac is not None else "",
+    )))
+PY
+)
     wait || true
     sort -V -k1,1 "$output"
-    rm -f -- "$output"
+    rm -f -- "$scan_xml" "$output"
 }
 
 lan_detail() {
-    local ip=${1:-} context iface own cidr gateway rest mac state name vendor latency open_tmp
+    local ip=${1:-} context iface own cidr gateway rest mac state name vendor latency
+    require_nmap
     [[ "$ip" =~ ^[0-9]+(\.[0-9]+){3}$ ]] || { printf 'Invalid IPv4 address.\n' >&2; exit 2; }
     context=$(network_context) || { printf 'No active IPv4 network.\n' >&2; exit 1; }
     IFS=$'\t' read -r iface own cidr gateway <<<"$context"
@@ -148,15 +173,11 @@ PY
         "$name" "$ip" "${mac:-Unknown}" "${vendor:-Unknown}" "${state:-Unknown}" "${latency:-No ping response}"
     [[ "$ip" == "$gateway" ]] && printf 'Role: Default gateway / router\n'
 
-    printf '\nOpen common TCP services:\n'
-    open_tmp=$(mktemp)
-    for item in '22 SSH' '53 DNS' '80 HTTP' '139 NetBIOS' '443 HTTPS' '445 SMB' '1716 KDE-Connect' '3000 Web-app' '3389 RDP' '5000 Web-app' '8000 HTTP-alt' '8080 HTTP-proxy' '9100 Printer'; do
-        port=${item%% *}; label=${item#* }
-        (nc -z -w 2 "$ip" "$port" >/dev/null 2>&1 && printf '%s/tcp  %s\n' "$port" "$label" >> "$open_tmp") &
-    done
-    wait || true
-    if [[ -s "$open_tmp" ]]; then sort -n "$open_tmp"; else printf 'None of the checked common ports responded.\n'; fi
-    rm -f -- "$open_tmp"
+    printf '\nNmap service scan:\n'
+    nmap -n -Pn -sT -sV --version-light --open -T4 --host-timeout 15s \
+        -p 22,53,80,139,443,445,1716,3000,3389,5000,8000,8080,9100 "$ip" 2>/dev/null |
+        sed -n '/^PORT[[:space:]]\+STATE[[:space:]]\+SERVICE/,$p' |
+        sed '/^Nmap done:/d'
 }
 
 case "${1:-}" in

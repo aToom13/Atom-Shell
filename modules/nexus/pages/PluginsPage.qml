@@ -569,7 +569,7 @@ PageBase {
         }
 
         SectionHeader { text: qsTr("Shell components") }
-        InfoRow { first: true; icon: "widgets"; label: "CaelestiaShell"; value: qsTr("Active") }
+        InfoRow { first: true; icon: "widgets"; label: "Atom Shell"; value: qsTr("Active") }
         InfoRow { icon: "dashboard_customize"; label: "Quickshell"; value: qsTr("Active") }
         InfoRow { last: true; icon: "view_quilt"; label: "qs-hyprview"; value: qsTr("Configured") }
 

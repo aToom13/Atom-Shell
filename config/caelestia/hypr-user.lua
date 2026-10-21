@@ -1,4 +1,6 @@
--- Optional user overrides and plugin examples.
+-- =======================================================
+-- Kullanıcı Override'ları ve Eklentiler
+-- =======================================================
 
 -------------------------------
 -- Dynamic Cursors Plugin
@@ -9,7 +11,7 @@ if hl.plugin.dynamic_cursors then
 
         enabled   = true,
         mode      = "tilt",       -- stretch, rotate, tilt, none
-        threshold = 2,
+        threshold = 2,            -- daha hassas (default: 2)
 
         tilt = {
             limit      = 2000,    -- default: 5000
@@ -46,7 +48,9 @@ if hl.plugin.dynamic_cursors then
     },
 
 
-        shake = { enabled = false },
+        shake = {
+            enabled = false,      -- shake-to-find kapalı
+        },
 
         hyprcursor = {
             enabled    = true,

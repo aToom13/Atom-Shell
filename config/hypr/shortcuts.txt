@@ -1,14 +1,22 @@
 ═══════════════════════════════════════════
-  CAELESTIA + HYPRLAND — KLAVYE KISAYOLLARI
+  ATOM SHELL + HYPRLAND — KLAVYE KISAYOLLARI
 ═══════════════════════════════════════════
 
 📱 UYGULAMALAR
   SUPER + W          → Tarayıcı (Zen Browser)
   SUPER + T          → Terminal (kitty)
-  SUPER + C          → Editör (VSCodium)
-  SUPER + E          → Dosya yöneticisi (Dolphin)
+  SUPER + C          → Editör (Antigravity IDE)
+  SUPER + E          → Dosya yöneticisi (Thunar)
   SUPER + SUPER_L    → Uygulama başlatıcı (Launcher)
   CTRL + ALT + V     → Ses ayarları (pavucontrol)
+
+  THINKPAD SİMGELİ TUŞLAR
+  F7 (monitör)       → Bağlı ekranların ayarları
+  F8 (uçak)          → Uçak modu (donanım işlevi)
+  F9                 → Bildirim panelini aç/kapat
+  F10 (telefon aç)   → Dikte başlat/bitir; altta durum paneli
+  F11 (telefon kapat) → Ekran alanındaki yazıyı panoya kopyala
+  F12 (yıldız)       → Kısayol rehberi ve düzenleyici aç/kapat
 
   SUPER + Tab        → Pencere önizleme (tüm workspace'ler)
 
@@ -18,13 +26,14 @@
   SUPER + ALT + F    → Borderlı tam ekran (maximized)
   SUPER + ALT + Space → Floating/tile geçişi
   SUPER + P          → Pencereyi sabitle (pin)
-  SUPER + ALT + \    → Picture-in-Picture
+  SUPER + ALT + P    → Picture-in-Picture
   SUPER + Z          → Pencereyi sürükle
   SUPER + X          → Pencereyi boyutlandır
   SUPER + yön tuşları → Odağı yöne taşı
   SUPER + SHIFT + yön → Pencereyi yöne taşı
-  SUPER + -/=        → Pencereyi daralt/genişlet
-  SUPER + SHIFT + -/= → Pencereyi kısalt/uzat
+  SUPER + ALT + oklar → Genişliği / yüksekliği değiştir
+  CTRL + SUPER + O   → Serbest pencereyi ortala
+  CTRL + SUPER + ALT + O → %55 × %70 boyutlandır ve ortala
 
 🔲 WORKSPACE
   SUPER + 0-9        → Workspace'e git
@@ -33,9 +42,11 @@
   CTRL + SUPER + ←/→ → Önceki/sonraki workspace
 
 🗂️ GRUP (SEKMELER)
-  ALT + TAB          → Sonraki grup penceresi
-  SHIFT + ALT + TAB  → Önceki grup penceresi
-  SUPER + ,          → Grubu aç/kapa
+  ALT + TAB          → Çalışma alanındaki sonraki pencere
+  SHIFT + ALT + TAB  → Çalışma alanındaki önceki pencere
+  SUPER + B          → Grubu oluştur/dağıt
+  SUPER + SHIFT + B  → Grup kilidini aç/kapa
+  CTRL + ALT + TAB   → Sonraki grup sekmesi
   SUPER + U          → Gruptan çıkar
 
 🔄 SPECIAL WORKSPACE'LER
@@ -46,12 +57,8 @@
   CTRL + SHIFT + Esc → Sistem monitörü
 
 📸 EKRAN GÖRÜNTÜSÜ & KAYIT
-  Print              → Tam ekran SS (kaydet + clipboard)
-  SUPER + SHIFT + S  → Bölge SS (donma efektli)
-  SUPER + SHIFT + ALT + S → Bölge SS
-  SUPER + ALT + R    → Kayıt başlat
-  CTRL + ALT + R     → Kayıt (alternatif)
-  SUPER + SHIFT + ALT + R → Kaydı durdur
+  PrtScr / SUPER + SHIFT + S → Fotoğraf / video: alan, pencere, uygulama; kayıt kontrolleri
+  Yakalama açıkken: SUPER + ALT + oklar → Boyutlandır; SUPER + SHIFT + oklar → Taşı
   SUPER + SHIFT + C  → Renk seçici
 
 🛠️ SİSTEM
@@ -87,3 +94,7 @@
   3 parmak → yukarı    → Special workspace
   3 parmak → aşağı     → Special workspace aç/kapa
   4 parmak → aşağı     → Uyku
+
+Türkçe Q düzeni: sembol gerektiren atamalar harf / yön tuşlarına taşındı.
+SUPER + SHIFT + H: kategori filtreleri, Türkçe arama, kalem ile yerleşik kısayol düzenleme.
+CTRL + SUPER + Page Up / Down: önceki / sonraki parça.

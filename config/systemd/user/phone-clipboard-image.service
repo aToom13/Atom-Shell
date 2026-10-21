@@ -1,0 +1,14 @@
+[Unit]
+Description=Send Wayland clipboard images to Phone Automation
+After=graphical-session.target
+
+[Service]
+Type=simple
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=WAYLAND_DISPLAY=wayland-1
+ExecStart=/usr/bin/wl-paste --type image/png --watch %h/.local/bin/phone-clipboard-image
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

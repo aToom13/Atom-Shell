@@ -13,6 +13,9 @@ import qs.utils
 Item {
     id: root
 
+    readonly property bool phoneSource: PhoneService.mediaAvailable && (PhoneService.selectedMediaSource === "phone" || !Players.active || (PhoneService.selectedMediaSource === "auto" && PhoneService.mediaPlaying && !(Players.active?.isPlaying ?? false)))
+    readonly property real mediaBpm: phoneSource ? PhoneService.mediaBpm : Audio.beatTracker.bpm
+
     property real playerProgress: {
         const active = Players.active;
         return active?.length ? (active.position % active.length) / active.length : 0;
@@ -31,7 +34,7 @@ Item {
     }
 
     Timer {
-        running: Players.active?.isPlaying ?? false
+        running: root.visible && !root.phoneSource && (Players.active?.isPlaying ?? false)
         interval: GlobalConfig.dashboard.mediaUpdateInterval
         triggeredOnStart: true
         repeat: true
@@ -39,7 +42,7 @@ Item {
     }
 
     ServiceRef {
-        service: Audio.beatTracker
+        service: root.visible && !root.phoneSource && (Players.active?.isPlaying ?? false) && !GameMode.pauseVisualisers ? Audio.beatTracker : null
     }
 
     CircularProgress {
@@ -57,7 +60,7 @@ Item {
         wavy: true
         waveFrequency: 8
         waveDuration: 2000
-        wavePaused: !Players.active?.isPlaying
+        wavePaused: !(root.phoneSource ? PhoneService.mediaPlaying : Players.active?.isPlaying ?? false)
     }
 
     CoverArt {
@@ -68,6 +71,8 @@ Item {
         anchors.right: parent.right
         anchors.margins: Tokens.padding.medium + root.arcCoverGap + prog.thickness
         implicitHeight: width
+        source: root.phoneSource ? PhoneService.mediaArtUrl : Players.getArtUrl(Players.active)
+        playing: root.phoneSource ? PhoneService.mediaPlaying : Players.active?.isPlaying ?? false
     }
 
     StyledText {
@@ -79,7 +84,7 @@ Item {
 
         animate: true
         horizontalAlignment: Text.AlignHCenter
-        text: (Players.active?.trackTitle ?? qsTr("No media")) || qsTr("Unknown title")
+        text: (root.phoneSource ? PhoneService.mediaTitle : Players.active?.trackTitle ?? qsTr("No media")) || qsTr("Unknown title")
         color: Colours.palette.m3primary
         font: Tokens.font.title.small
 
@@ -96,7 +101,7 @@ Item {
 
         animate: true
         horizontalAlignment: Text.AlignHCenter
-        text: (Players.active?.trackAlbum ?? qsTr("No media")) || qsTr("Unknown album")
+        text: (root.phoneSource ? PhoneService.mediaAlbum : Players.active?.trackAlbum ?? qsTr("No media")) || qsTr("Unknown album")
         color: Colours.palette.m3outline
         font: Tokens.font.body.small
 
@@ -113,7 +118,7 @@ Item {
 
         animate: true
         horizontalAlignment: Text.AlignHCenter
-        text: (Players.active?.trackArtist ?? qsTr("No media")) || qsTr("Unknown artist")
+        text: (root.phoneSource ? PhoneService.mediaArtist : Players.active?.trackArtist ?? qsTr("No media")) || qsTr("Unknown artist")
         color: Colours.palette.m3secondary
 
         width: parent.implicitWidth - Tokens.padding.extraLargeIncreased
@@ -136,18 +141,18 @@ Item {
             icon: "skip_previous"
             isRound: true
             shapeMorph: true
-            disabled: !Players.active?.canGoPrevious
-            onClicked: Players.active?.previous()
+            disabled: root.phoneSource ? !PhoneService.mediaAvailable : !Players.active?.canGoPrevious
+            onClicked: root.phoneSource ? PhoneService.controlMedia("media-previous") : Players.active?.previous()
         }
 
         IconButton {
             fillWidth: true
-            icon: Players.active?.isPlaying ? "pause" : "play_arrow"
+            icon: (root.phoneSource ? PhoneService.mediaPlaying : Players.active?.isPlaying) ? "pause" : "play_arrow"
             isRound: true
             shapeMorph: true
-            checked: Players.active?.isPlaying ?? false
-            disabled: !Players.active?.canTogglePlaying
-            onClicked: Players.active?.togglePlaying()
+            checked: root.phoneSource ? PhoneService.mediaPlaying : Players.active?.isPlaying ?? false
+            disabled: root.phoneSource ? !PhoneService.mediaAvailable : !Players.active?.canTogglePlaying
+            onClicked: root.phoneSource ? PhoneService.controlMedia("media-play-pause") : Players.active?.togglePlaying()
         }
 
         IconButton {
@@ -155,8 +160,8 @@ Item {
             icon: "skip_next"
             isRound: true
             shapeMorph: true
-            disabled: !Players.active?.canGoNext
-            onClicked: Players.active?.next()
+            disabled: root.phoneSource ? !PhoneService.mediaAvailable : !Players.active?.canGoNext
+            onClicked: root.phoneSource ? PhoneService.controlMedia("media-next") : Players.active?.next()
         }
     }
 
@@ -171,8 +176,8 @@ Item {
         anchors.bottomMargin: Tokens.padding.large
         anchors.margins: Tokens.padding.extraLargeIncreased
 
-        playing: Players.active?.isPlaying ?? false
-        speed: Audio.beatTracker.bpm / Config.general.mediaGifSpeedAdjustment // qmllint disable unresolved-type
+        playing: root.visible && !GameMode.pauseMediaArtwork && !GameMode.reduceAnimations
+        speed: root.mediaBpm > 0 ? root.mediaBpm / Math.max(1, Config.general.mediaGifSpeedAdjustment) : 1 // qmllint disable unresolved-type
         source: Paths.absolutePath(Config.paths.mediaGif)
         asynchronous: true
         fillMode: AnimatedImage.PreserveAspectFit

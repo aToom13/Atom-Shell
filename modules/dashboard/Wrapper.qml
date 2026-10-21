@@ -18,33 +18,35 @@ Item {
         filters: Images.validImageExtensions
         onAccepted: path => {
             if (CUtils.copyFile(Qt.resolvedUrl(path), Qt.resolvedUrl(`${Paths.home}/.face`)))
-                Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "low", "-h", `STRING:image-path:${path}`, "Profile picture changed", `Profile picture changed to ${Paths.shortenHome(path)}`]);
+                Quickshell.execDetached(["notify-send", "-a", "Atom Shell", "-u", "low", "-h", `STRING:image-path:${path}`, qsTr("Profile picture changed"), qsTr("Profile picture changed to %1").arg(Paths.shortenHome(path))]);
             else
-                Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "critical", "Unable to change profile picture", `Failed to change profile picture to ${Paths.shortenHome(path)}`]);
+                Quickshell.execDetached(["notify-send", "-a", "Atom Shell", "-u", "critical", qsTr("Unable to change profile picture"), qsTr("Failed to change profile picture to %1").arg(Paths.shortenHome(path))]);
         }
     }
 
     readonly property real nonAnimHeight: (content.item as Content)?.nonAnimHeight ?? 0
-    readonly property bool shouldBeActive: screenState.dashboard && Config.dashboard.enabled
+    readonly property bool shouldBeActive: screenState.dashboard && Config.dashboard.enabled && content.status === Loader.Ready
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
     anchors.topMargin: (-implicitHeight - 5) * offsetScale
     implicitHeight: content.implicitHeight
-    implicitWidth: content.implicitWidth || 854 // Hard coded fallback for first open
+    implicitWidth: content.implicitWidth
+    width: implicitWidth
+    height: implicitHeight
     opacity: 1 - offsetScale
 
     Behavior on offsetScale {
-        Anim {}
+        Anim { type: Anim.FastSpatial }
     }
 
     Loader {
         id: content
 
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
+        anchors.top: parent.top
 
-        active: root.shouldBeActive || root.visible
+        active: Config.dashboard.enabled
 
         sourceComponent: Content {
             screenState: root.screenState

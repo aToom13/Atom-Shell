@@ -1,5 +1,17 @@
 {
     "appearance": {
+        "font": {
+            "scale": 1
+        },
+        "padding": {
+            "scale": 1
+        },
+        "rounding": {
+            "scale": 1
+        },
+        "spacing": {
+            "scale": 1
+        },
         "transparency": {
             "enabled": true
         }
@@ -49,13 +61,34 @@
         },
         "showOnHover": true,
         "statusIcons": [
-            { "id": "lockStatus", "enabled": true },
-            { "id": "audio", "enabled": true },
-            { "id": "microphone", "enabled": true },
-            { "id": "kbLayout", "enabled": false },
-            { "id": "network", "enabled": true },
-            { "id": "bluetooth", "enabled": true },
-            { "id": "battery", "enabled": true }
+            {
+                "enabled": true,
+                "id": "lockStatus"
+            },
+            {
+                "enabled": true,
+                "id": "audio"
+            },
+            {
+                "enabled": true,
+                "id": "microphone"
+            },
+            {
+                "enabled": false,
+                "id": "kbLayout"
+            },
+            {
+                "enabled": true,
+                "id": "network"
+            },
+            {
+                "enabled": true,
+                "id": "bluetooth"
+            },
+            {
+                "enabled": true,
+                "id": "battery"
+            }
         ],
         "tray": {
             "background": false,
@@ -84,9 +117,12 @@
             "playback": [
                 "/usr/bin/vlc",
                 "--started-from-file"
+            ],
+            "terminal": [
+                "foot"
             ]
         },
-        "showOverFullscreen": false
+        "showOverFullscreen": true
     },
     "launcher": {
         "actions": [
@@ -98,6 +134,15 @@
                 "description": "Do simple math equations (powered by Qalc)",
                 "icon": "calculate",
                 "name": "Calculator"
+            },
+            {
+                "command": [
+                    "autocomplete",
+                    "shortcuts"
+                ],
+                "description": "Kısayolları ara; tuşları ve pencere işlemlerini keşfet",
+                "icon": "keyboard",
+                "name": "Shortcuts"
             },
             {
                 "command": [
@@ -212,7 +257,8 @@
         ],
         "dragThreshold": 90,
         "enableDangerousActions": true,
-        "hiddenApps": [],
+        "hiddenApps": [
+        ],
         "maxShown": 5,
         "showOnHover": true,
         "useFuzzy": {
@@ -223,12 +269,9 @@
         }
     },
     "lock": {
-        "enableFprint": false,
-        "enableHowdy": false,
-        "useWallpaper": true
+        "enableFprint": true
     },
     "nexus": {
-        "maxNetworksShown": 5,
         "networkRescanInterval": 10000
     },
     "notifs": {
@@ -240,8 +283,11 @@
         "openExpanded": false
     },
     "services": {
-        "gpuType": "",
+        "audioIncrement": 0.05,
+        "brightnessIncrement": 0.05,
+        "gpuType": "GENERIC",
         "maxVolume": 1.5,
+        "smartScheme": false,
         "useTwelveHourClock": false,
         "weatherLocation": ""
     },

@@ -2,6 +2,9 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Widgets
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
@@ -12,6 +15,9 @@ PageBase {
     id: root
 
     property int editingActionIndex: -1
+    property int editingFolderIndex: -1
+    property string folderAppSearch
+    property var folderApps: []
 
     function commandToText(command: var): string {
         if (!Array.isArray(command))
@@ -74,6 +80,59 @@ PageBase {
         GlobalConfig.launcher.actions = GlobalConfig.launcher.actions.filter((action, i) => i !== index);
         if (editingActionIndex === index)
             clearActionEditor();
+    }
+
+    function editFolder(index: int, folder: var): void {
+        editingFolderIndex = index;
+        folderName.text = folder.name ?? "";
+        folderIcon.text = folder.icon ?? "folder";
+        folderApps = [...(folder.apps ?? [])];
+        folderAppSearch = "";
+        folderName.forceActiveFocus();
+    }
+
+    function clearFolderEditor(): void {
+        editingFolderIndex = -1;
+        folderName.text = "";
+        folderIcon.text = "folder";
+        folderApps = [];
+        folderAppSearch = "";
+    }
+
+    function toggleFolderApp(appId: string): void {
+        folderApps = folderApps.includes(appId) ? folderApps.filter(id => id !== appId) : [...folderApps, appId];
+    }
+
+    function filteredFolderApps(): var {
+        const query = folderAppSearch.trim().toLowerCase();
+        if (!query)
+            return [];
+        return [...DesktopEntries.applications.values].filter(app => `${app.name} ${app.id} ${app.comment || ""}`.toLowerCase().includes(query)).sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8);
+    }
+
+    function saveFolder(): void {
+        const name = folderName.text.trim();
+        if (!name || folderApps.length === 0)
+            return;
+        const folder = {
+            id: editingFolderIndex >= 0 ? LauncherFolders.folders[editingFolderIndex].id : Date.now().toString(),
+            name,
+            icon: folderIcon.text.trim() || "folder",
+            apps: folderApps
+        };
+        const folders = [...LauncherFolders.folders];
+        if (editingFolderIndex >= 0)
+            folders[editingFolderIndex] = folder;
+        else
+            folders.push(folder);
+        LauncherFolders.save(folders);
+        clearFolderEditor();
+    }
+
+    function removeFolder(index: int): void {
+        LauncherFolders.save(LauncherFolders.folders.filter((folder, i) => i !== index));
+        if (editingFolderIndex === index)
+            clearFolderEditor();
     }
 
     title: qsTr("Launcher")
@@ -209,6 +268,129 @@ PageBase {
                     supportingText: qsTr("Prefix for shell actions")
                     text: GlobalConfig.launcher.actionPrefix
                     onAccepted: GlobalConfig.launcher.actionPrefix = text
+                }
+            }
+        }
+
+        SectionHeader { text: qsTr("Application folders") }
+
+        Repeater {
+            model: LauncherFolders.folders
+            delegate: ConnectedRect {
+                id: folderRow
+                required property var modelData
+                required property int index
+                Layout.fillWidth: true
+                first: index === 0
+                last: index === LauncherFolders.folders.length - 1
+                implicitHeight: folderLayout.implicitHeight + Tokens.padding.medium * 2
+
+                StateLayer { onClicked: root.editFolder(folderRow.index, folderRow.modelData) }
+
+                RowLayout {
+                    id: folderLayout
+                    anchors.fill: parent
+                    anchors.margins: Tokens.padding.medium
+                    anchors.leftMargin: Tokens.padding.largeIncreased
+                    anchors.rightMargin: Tokens.padding.largeIncreased
+                    spacing: Tokens.spacing.medium
+                    MaterialIcon { text: folderRow.modelData.icon || "folder"; color: Colours.palette.m3onSurfaceVariant; fontStyle: Tokens.font.icon.medium }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 0
+                        StyledText { Layout.fillWidth: true; text: folderRow.modelData.name; font: Tokens.font.body.small; elide: Text.ElideRight }
+                        StyledText { Layout.fillWidth: true; text: qsTr("%1 applications").arg(folderRow.modelData.apps.length); color: Colours.palette.m3outline; font: Tokens.font.label.small }
+                    }
+                    IconButton { icon: "edit"; type: IconButton.Text; onClicked: root.editFolder(folderRow.index, folderRow.modelData) }
+                    IconButton { icon: "delete"; type: IconButton.Text; onClicked: root.removeFolder(folderRow.index) }
+                }
+            }
+        }
+
+        ConnectedRect {
+            Layout.fillWidth: true
+            first: LauncherFolders.folders.length === 0
+            last: true
+            implicitHeight: folderEditorLayout.implicitHeight + Tokens.padding.large * 2
+
+            ColumnLayout {
+                id: folderEditorLayout
+                anchors.fill: parent
+                anchors.margins: Tokens.padding.large
+                spacing: Tokens.spacing.medium
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Tokens.spacing.medium
+                    StyledTextField { id: folderName; Layout.fillWidth: true; placeholderText: qsTr("Folder name"); leadingIcon: "folder" }
+                    StyledTextField { id: folderIcon; Layout.fillWidth: true; placeholderText: qsTr("Material icon"); text: "folder"; leadingIcon: "symbols" }
+                }
+
+                StyledTextField {
+                    Layout.fillWidth: true
+                    placeholderText: qsTr("Search applications")
+                    supportingText: qsTr("%1 selected").arg(root.folderApps.length)
+                    leadingIcon: "search"
+                    text: root.folderAppSearch
+                    onTextChanged: root.folderAppSearch = text
+                }
+
+                Repeater {
+                    model: root.filteredFolderApps()
+
+                    delegate: ConnectedRect {
+                        id: appItem
+                        required property var modelData
+                        required property int index
+
+                        Layout.fillWidth: true
+                        implicitHeight: appLayout.implicitHeight + Tokens.padding.medium * 2
+                        radius: Tokens.rounding.small
+
+                        StateLayer {
+                            radius: appItem.radius
+                            onClicked: root.toggleFolderApp(appItem.modelData.id)
+                        }
+
+                        RowLayout {
+                            id: appLayout
+                            anchors.fill: parent
+                            anchors.margins: Tokens.padding.medium
+                            spacing: Tokens.spacing.medium
+
+                            IconImage {
+                                asynchronous: true
+                                implicitSize: Math.round(Tokens.font.icon.large.pointSize * 1.8)
+                                source: Quickshell.iconPath(appItem.modelData.icon, "image-missing")
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                StyledText { Layout.fillWidth: true; text: appItem.modelData.name; font: Tokens.font.body.small; elide: Text.ElideRight }
+                                StyledText { Layout.fillWidth: true; text: appItem.modelData.id; color: Colours.palette.m3outline; font: Tokens.font.label.small; elide: Text.ElideRight }
+                            }
+
+                            MaterialIcon {
+                                text: root.folderApps.includes(appItem.modelData.id) ? "check_circle" : "radio_button_unchecked"
+                                color: root.folderApps.includes(appItem.modelData.id) ? Colours.palette.m3primary : Colours.palette.m3outline
+                                fontStyle: Tokens.font.icon.medium
+                            }
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.alignment: Qt.AlignRight
+                    spacing: Tokens.spacing.medium
+                    TextButton { visible: root.editingFolderIndex >= 0; text: qsTr("Cancel edit"); type: TextButton.Text; onClicked: root.clearFolderEditor() }
+                    IconTextButton {
+                        icon: root.editingFolderIndex >= 0 ? "save" : "create_new_folder"
+                        text: root.editingFolderIndex >= 0 ? qsTr("Save folder") : qsTr("Add folder")
+                        type: ButtonBase.Filled
+                        disabled: !folderName.text.trim() || root.folderApps.length === 0
+                        onClicked: root.saveFolder()
+                    }
                 }
             }
         }

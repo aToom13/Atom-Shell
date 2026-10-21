@@ -9,6 +9,7 @@ import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.services
+import qs.utils
 import qs.modules.nexus.common
 
 PageBase {
@@ -38,6 +39,10 @@ PageBase {
     property bool networkActionBusy
     property string pendingForgetUuid
     property string pendingForgetName
+    property bool showAllSavedNetworks
+    readonly property bool connectionActive: networkState === "connected" || Nmcli.isConnected
+    readonly property string currentDevice: activeDevice || Nmcli.activeInterface
+    readonly property string currentConnection: activeConnection || Nmcli.activeConnection
 
     function parseRows(text: string): list<var> {
         return text.trim().split("\n").filter(line => line).map(line => {
@@ -47,10 +52,13 @@ PageBase {
     }
 
     function refreshStatus(): void {
+        Nmcli.refreshStatus(() => {});
         statusProc.running = vpnProc.running = activeVpnProc.running = savedWifiProc.running = true;
     }
 
     function parseStatus(text: string): void {
+        if (!text.trim())
+            return;
         const values = {};
         for (const line of text.trim().split("\n")) {
             const split = line.indexOf("\t");
@@ -207,22 +215,22 @@ PageBase {
             first: true
             last: true
             implicitHeight: connectionSummary.implicitHeight + Tokens.padding.large * 2
-            color: Colours.layer(root.activeDevice && root.networkState === "connected" ? Colours.palette.m3primaryContainer : Colours.palette.m3errorContainer, 2)
+            color: Colours.layer(root.connectionActive ? Colours.palette.m3primaryContainer : Colours.palette.m3errorContainer, 2)
             RowLayout {
                 id: connectionSummary
                 anchors.fill: parent
                 anchors.margins: Tokens.padding.large
                 spacing: Tokens.spacing.large
                 MaterialIcon {
-                    text: root.activeDevice && root.networkState === "connected" ? root.activeType === "wifi" ? Icons.getNetworkIcon(Number(root.wifiSignal || 0)) : "lan" : "public_off"
-                    color: root.activeDevice && root.networkState === "connected" ? Colours.palette.m3primary : Colours.palette.m3error
+                    text: root.connectionActive ? root.activeType === "wifi" ? Icons.getNetworkIcon(Number(root.wifiSignal || 0)) : "lan" : "public_off"
+                    color: root.connectionActive ? Colours.palette.m3primary : Colours.palette.m3error
                     fontStyle: Tokens.font.icon.extraLarge
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 0
-                    StyledText { Layout.fillWidth: true; text: root.activeConnection || qsTr("No active connection"); font: Tokens.font.title.medium; elide: Text.ElideRight }
-                    StyledText { Layout.fillWidth: true; text: root.activeDevice ? qsTr("%1 • %2 • internet: %3").arg(root.activeDevice).arg(root.activeType).arg(root.connectivity) : qsTr("NetworkManager: %1").arg(root.networkState || qsTr("Unknown")); color: Colours.palette.m3outline; font: Tokens.font.body.small; elide: Text.ElideRight }
+                    StyledText { Layout.fillWidth: true; text: root.currentConnection || qsTr("No active connection"); font: Tokens.font.title.medium; elide: Text.ElideRight }
+                    StyledText { Layout.fillWidth: true; text: root.currentDevice ? qsTr("%1 • %2 • internet: %3").arg(root.currentDevice).arg(root.activeType || qsTr("network")).arg(root.connectivity) : qsTr("NetworkManager: %1").arg(root.networkState || qsTr("Disconnected")); color: Colours.palette.m3outline; font: Tokens.font.body.small; elide: Text.ElideRight }
                 }
                 IconButton { icon: "refresh"; type: IconButton.Text; onClicked: root.refreshStatus() }
             }
@@ -257,12 +265,59 @@ PageBase {
             value: root.wifiSignal ? qsTr("%1% • %2").arg(root.wifiSignal).arg(root.wifiRate) : root.wifiRate
         }
 
+        ConnectedRect {
+            visible: root.activeType === "wifi" && (CaptivePortal.checking || CaptivePortal.available)
+            Layout.topMargin: Tokens.spacing.medium
+            implicitHeight: portalLayout.implicitHeight + Tokens.padding.large * 2
+
+            RowLayout {
+                id: portalLayout
+
+                anchors.fill: parent
+                anchors.margins: Tokens.padding.large
+                spacing: Tokens.spacing.large
+
+                MaterialIcon {
+                    text: CaptivePortal.available ? "wifi_tethering" : "sync"
+                    animate: CaptivePortal.checking && !CaptivePortal.available
+                    fontStyle: Tokens.font.icon.extraLarge
+                    color: Colours.palette.m3primary
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+
+                    StyledText {
+                        text: CaptivePortal.available ? qsTr("Sign in required") : qsTr("Checking sign-in status")
+                        font: Tokens.font.title.small
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: CaptivePortal.available ? qsTr("This Wi-Fi connection has no full internet access yet.") : qsTr("Looking for this network’s captive portal.")
+                        color: Colours.palette.m3onSurfaceVariant
+                        font: Tokens.font.body.small
+                        wrapMode: Text.WordWrap
+                    }
+                }
+
+                IconTextButton {
+                    visible: CaptivePortal.available
+                    icon: "login"
+                    text: qsTr("Open login page")
+                    type: ButtonBase.Filled
+                    onClicked: CaptivePortal.openLogin()
+                }
+            }
+        }
+
         InfoRow {
             visible: root.activeType !== "wifi"
             last: true
             icon: "settings_ethernet"
             label: qsTr("Interface")
-            value: root.activeDevice || qsTr("None")
+            value: root.currentDevice || qsTr("None")
         }
 
         RowLayout {
@@ -274,7 +329,7 @@ PageBase {
                 icon: root.diagnosing ? "sync" : "troubleshoot"
                 text: root.diagnosing ? qsTr("Testing…") : qsTr("Run diagnostics")
                 type: ButtonBase.Filled
-                disabled: root.diagnosing || !root.activeDevice
+                disabled: root.diagnosing || !root.currentDevice
                 onClicked: root.runDiagnostics()
             }
             IconTextButton {
@@ -282,14 +337,14 @@ PageBase {
                 icon: "restart_alt"
                 text: qsTr("Reconnect")
                 type: IconTextButton.Tonal
-                disabled: root.networkActionBusy || !root.activeConnection
-                onClicked: root.runNetworkAction(qsTr("Reconnecting %1").arg(root.activeConnection), ["nmcli", "connection", "up", "id", root.activeConnection])
+                disabled: root.networkActionBusy || !root.currentConnection
+                onClicked: root.runNetworkAction(qsTr("Reconnecting %1").arg(root.currentConnection), ["nmcli", "connection", "up", "id", root.currentConnection])
             }
             IconButton {
                 icon: "content_copy"
                 type: IconButton.Tonal
-                disabled: !root.activeDevice
-                onClicked: Quickshell.execDetached(["sh", "-c", `printf '%s\n' 'Connection: ${root.activeConnection}' 'Interface: ${root.activeDevice}' 'Address: ${root.ipv4Address}' 'Gateway: ${root.gateway}' 'DNS: ${root.dnsServers}' 'MAC: ${root.macAddress}' | wl-copy`])
+                disabled: !root.currentDevice
+                onClicked: Quickshell.execDetached(["sh", "-c", `printf '%s\n' 'Connection: ${root.currentConnection}' 'Interface: ${root.currentDevice}' 'Address: ${root.ipv4Address}' 'Gateway: ${root.gateway}' 'DNS: ${root.dnsServers}' 'MAC: ${root.macAddress}' | wl-copy`])
             }
         }
 
@@ -309,6 +364,30 @@ PageBase {
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.mono.small
             }
+        }
+
+        SectionHeader { text: qsTr("Local network") }
+
+        RowButton {
+            first: true
+            last: true
+            icon: "lan"
+            text: qsTr("Devices on the local network")
+            subtext: qsTr("Discover devices, names and services with nmap")
+            trailingIcon: "chevron_right"
+            onClicked: root.nState.openSubPage(8)
+        }
+
+        SectionHeader { text: qsTr("Security") }
+
+        RowButton {
+            first: true
+            last: true
+            icon: "security"
+            text: qsTr("Network security")
+            subtext: qsTr("Connection safety, local services and packet inspection")
+            trailingIcon: "chevron_right"
+            onClicked: root.nState.openSubPage(10)
         }
 
         Timer {
@@ -654,7 +733,7 @@ PageBase {
         }
 
         Repeater {
-            model: root.savedWifiProfiles
+            model: root.showAllSavedNetworks ? root.savedWifiProfiles : root.savedWifiProfiles.slice(0, 5)
 
             delegate: ConnectedRect {
                 required property var modelData
@@ -662,7 +741,7 @@ PageBase {
                 visible: root.savedWifiProfiles.length > 0
                 Layout.fillWidth: true
                 first: index === 0
-                last: index === root.savedWifiProfiles.length - 1
+                last: index === Math.min(root.savedWifiProfiles.length, root.showAllSavedNetworks ? root.savedWifiProfiles.length : 5) - 1 && root.savedWifiProfiles.length <= 5
                 implicitHeight: savedProfileLayout.implicitHeight + Tokens.padding.medium * 2
 
                 RowLayout {
@@ -687,6 +766,24 @@ PageBase {
                         onClicked: root.runNetworkAction(qsTr("Connecting to %1").arg(modelData.name), ["nmcli", "connection", "up", "uuid", modelData.uuid])
                     }
                     IconButton {
+                        icon: "visibility"
+                        type: IconButton.Text
+                        onClicked: {
+                            root.nState.selectedSavedWifiProfile = modelData;
+                            root.nState.revealSavedWifiPassword = true;
+                            root.nState.openSubPage(9);
+                        }
+                    }
+                    IconButton {
+                        icon: "qr_code_2"
+                        type: IconButton.Text
+                        onClicked: {
+                            root.nState.selectedSavedWifiProfile = modelData;
+                            root.nState.revealSavedWifiPassword = false;
+                            root.nState.openSubPage(9);
+                        }
+                    }
+                    IconButton {
                         icon: "edit"
                         type: IconButton.Text
                         onClicked: Quickshell.execDetached(["kitty", "--title", qsTr("Edit network profile"), "-e", "nmcli", "connection", "edit", "uuid", modelData.uuid])
@@ -699,6 +796,16 @@ PageBase {
                     }
                 }
             }
+        }
+
+        RowButton {
+            visible: root.savedWifiProfiles.length > 5
+            first: false
+            last: true
+            icon: root.showAllSavedNetworks ? "expand_less" : "expand_more"
+            text: root.showAllSavedNetworks ? qsTr("Show fewer networks") : qsTr("Show %1 more networks").arg(root.savedWifiProfiles.length - 5)
+            trailingIcon: root.showAllSavedNetworks ? "keyboard_arrow_up" : "keyboard_arrow_down"
+            onClicked: root.showAllSavedNetworks = !root.showAllSavedNetworks
         }
 
         ConnectedRect {

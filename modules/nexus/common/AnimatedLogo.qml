@@ -48,7 +48,7 @@ Item {
         opacity: root.skipIntroAnimation ? 1.0 : 0.0
         rotation: 0.0
 
-        layer.enabled: root.blurAmount > 0
+        layer.enabled: root.blurAmount > 0 && !GameMode.disableBlur
         layer.effect: MultiEffect {
             blurEnabled: true
             blur: root.blurAmount

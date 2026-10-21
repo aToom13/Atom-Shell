@@ -1,3 +1,4 @@
+import qs.services
 import QtQuick
 import Quickshell
 import Quickshell.Services.UPower
@@ -12,7 +13,7 @@ Scope {
     property real lastPercentage: 100
 
     function handleBatteryWarnings(): void {
-        const p = UPower.displayDevice.percentage * 100;
+        const p = BatteryEstimator.displayPercent;
 
         if (!UPower.onBattery) {
             root.lastPercentage = p;
@@ -28,10 +29,7 @@ Scope {
             }
         }
 
-        if (!hibernateTimer.running && p <= GlobalConfig.general.battery.criticalLevel) {
-            Toaster.toast(qsTr("Hibernating in 5 seconds"), qsTr("Hibernating to prevent data loss"), "battery_android_alert", Toast.Error);
-            hibernateTimer.start();
-        }
+        // ponytail: reserve threshold actions live in HibernationController.
 
         root.lastPercentage = p;
     }
@@ -75,10 +73,4 @@ Scope {
         target: UPower.displayDevice
     }
 
-    Timer {
-        id: hibernateTimer
-
-        interval: 5000
-        onTriggered: SessionManager.hibernate()
-    }
 }

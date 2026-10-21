@@ -15,7 +15,7 @@ PageBase {
 
     readonly property list<var> schemes: [
         ["dynamic", qsTr("Wallpaper"), "auto_awesome"],
-        ["caelestia", "Caelestia", "blur_on"],
+        ["caelestia", "Atom Shell", "blur_on"],
         ["catppuccin", "Catppuccin", "coffee"],
         ["dracula", "Dracula", "dark_mode"],
         ["everforest", "Everforest", "forest"],

@@ -1,0 +1,11 @@
+[Unit]
+Description=Phone Automation SSH server
+After=network-online.target tailscaled.service
+
+[Service]
+ExecStart=/usr/bin/sshd -D -e -f %h/.local/share/phone-automation-sshd/sshd_config
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

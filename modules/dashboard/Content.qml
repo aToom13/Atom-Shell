@@ -30,6 +30,12 @@ Item {
                 enabled: Config.dashboard.showMedia
             },
             {
+                component: phoneComponent,
+                iconName: "smartphone",
+                text: qsTr("Phone"),
+                enabled: true
+            },
+            {
                 component: performanceComponent,
                 iconName: "speed",
                 text: qsTr("Performance"),
@@ -126,7 +132,6 @@ Item {
 
                 Repeater {
                     id: repeater
-
                     model: ScriptModel {
                         values: root.dashboardTabs
                     }
@@ -141,13 +146,12 @@ Item {
 
                         sourceComponent: modelData.component
 
-                        Component.onCompleted: active = Qt.binding(() => {
-                            if (index === view.currentIndex)
-                                return true;
-                            const vx = Math.floor(view.visibleArea.xPosition * view.contentWidth);
-                            const vex = Math.floor(vx + view.visibleArea.widthRatio * view.contentWidth);
-                            return (vx >= x && vx <= x + implicitWidth) || (vex >= x && vex <= x + implicitWidth);
-                        })
+                        // Keep pages cached; hide their content without removing layout space.
+                        Binding {
+                            target: paneLoader.item
+                            property: "visible"
+                            value: paneLoader.index === view.currentIndex || (paneLoader.x < view.contentX + view.width && paneLoader.x + paneLoader.width > view.contentX)
+                        }
                     }
                 }
             }
@@ -170,6 +174,14 @@ Item {
             }
 
             Component {
+                id: phoneComponent
+
+                Phone {
+                    screenState: root.screenState
+                }
+            }
+
+            Component {
                 id: performanceComponent
 
                 Performance {}
@@ -182,16 +194,16 @@ Item {
             }
 
             Behavior on contentX {
-                Anim {}
+                Anim { type: Anim.FastSpatial }
             }
         }
     }
 
     Behavior on implicitWidth {
-        Anim {}
+        Anim { type: Anim.FastSpatial }
     }
 
     Behavior on implicitHeight {
-        Anim {}
+        Anim { type: Anim.FastSpatial }
     }
 }

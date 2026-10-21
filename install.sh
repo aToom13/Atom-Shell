@@ -17,29 +17,31 @@ RUNTIME=auto
 INSTALL_NIX=false
 
 usage() {
-    cat <<'EOF'
-Kullanım: ./install.sh [seçenekler]
+    cat <<EOF
+Kullanım / Usage: $0 [seçenekler / options]
 
-  --dry-run                 Hiçbir şeyi değiştirmeden yapılacakları göster
-  --no-packages             Sistem paketlerine dokunma
-  --no-build                Derlenmiş runtime'ı değiştirme
-  --non-interactive         Soruları güvenli varsayımlarla geç
-  --config-mode MODE        merge (varsayılan), replace veya skip
-  --profile PROFILE         full (varsayılan) veya minimal
-  --runtime MODE            auto, native veya nix
-  --install-nix             Eksikse resmi Nix kurucusunu çalıştır
-  -h, --help                Bu yardımı göster
+  --dry-run                 Hiçbir şeyi değiştirmeden yapılacakları göster / Preview actions without modifying
+  --no-packages             Sistem paketlerine dokunma / Skip system package installation
+  --no-build                Derlenmiş runtime'ı değiştirme / Skip building/updating native runtime
+  --non-interactive         Soruları güvenli varsayımlarla geç / Non-interactive unattended mode
+  --config-mode MODE        merge (varsayılan/default), replace veya/or skip
+  --profile PROFILE         full (varsayılan/default) veya/or minimal
+  --runtime MODE            auto, native veya/or nix
+  --install-nix             Eksikse resmi Nix kurucusunu çalıştır / Install official Nix if missing
+  -h, --help                Bu yardımı göster / Show this help
 EOF
 }
+
+INTERACTIVE_PROMPTS=true
 
 while (($#)); do
     case $1 in
         --dry-run) DRY_RUN=true ;;
         --no-packages) INSTALL_PACKAGES=false ;;
         --no-build) BUILD_RUNTIME=false ;;
-        --non-interactive) NON_INTERACTIVE=true ;;
-        --config-mode) shift; CONFIG_MODE=${1:-} ;;
-        --profile) shift; PROFILE=${1:-} ;;
+        --non-interactive) NON_INTERACTIVE=true; INTERACTIVE_PROMPTS=false ;;
+        --config-mode) shift; CONFIG_MODE=${1:-}; INTERACTIVE_PROMPTS=false ;;
+        --profile) shift; PROFILE=${1:-}; INTERACTIVE_PROMPTS=false ;;
         --runtime) shift; RUNTIME=${1:-} ;;
         --install-nix) INSTALL_NIX=true ;;
         -h|--help) usage; exit 0 ;;
@@ -48,13 +50,49 @@ while (($#)); do
     shift
 done
 
+ensure_user
+detect_distro
+
+if [[ $NON_INTERACTIVE == false && -t 0 && $INTERACTIVE_PROMPTS == true ]]; then
+    printf '\n\033[1;36m=== Atom Shell Kurulum Sihirbazı / Setup Wizard ===\033[0m\n'
+    printf 'Ön kontroller / Pre-flight checks:\n'
+    printf '  • Dağıtım / Distro:    %s (%s)\n' "$DISTRO_ID" "$DISTRO_FAMILY"
+    printf '  • Wayland oturumu:     %s\n' "${WAYLAND_DISPLAY:-Yok / Not active}"
+    if command -v hyprctl >/dev/null 2>&1; then
+        hypr_ver=$(hyprctl version 2>/dev/null | sed -nE 's/.*[Vv]ersion[^0-9]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' | head -n1)
+        printf '  • Hyprland:            %s\n' "${hypr_ver:-Mevcut / Found}"
+    else
+        printf '  • Hyprland:            Kurulu değil / Not found\n'
+    fi
+    printf '  • Quickshell:          %s\n' "$(command -v qs >/dev/null 2>&1 && echo 'Mevcut / Found' || echo 'Kurulacak / Will install')"
+    printf '\n'
+
+    read -r -p "Kurulum profili / Installation profile [1: full (varsayılan), 2: minimal] (1): " ans_prof || ans_prof=""
+    case "$ans_prof" in
+        2|minimal) PROFILE=minimal ;;
+        *) PROFILE=full ;;
+    esac
+
+    read -r -p "Yapılandırma modu / Config mode [1: merge (varsayılan), 2: replace, 3: skip] (1): " ans_cfg || ans_cfg=""
+    case "$ans_cfg" in
+        2|replace) CONFIG_MODE=replace ;;
+        3|skip) CONFIG_MODE=skip ;;
+        *) CONFIG_MODE=merge ;;
+    esac
+
+    if confirm "Eksik sistem paketleri kurulsun mu? / Install system packages?" yes; then
+        INSTALL_PACKAGES=true
+    else
+        INSTALL_PACKAGES=false
+    fi
+    printf '\n'
+fi
+
 [[ $CONFIG_MODE =~ ^(merge|replace|skip)$ ]] || die "Geçersiz --config-mode: $CONFIG_MODE"
 [[ $PROFILE =~ ^(minimal|full)$ ]] || die "Geçersiz --profile: $PROFILE"
 [[ $RUNTIME =~ ^(auto|native|nix)$ ]] || die "Geçersiz --runtime: $RUNTIME"
 export DRY_RUN NON_INTERACTIVE PROFILE
 
-ensure_user
-detect_distro
 if [[ $RUNTIME == auto ]]; then
     [[ $DISTRO_FAMILY == arch ]] && RUNTIME=native || RUNTIME=nix
 fi
@@ -142,7 +180,7 @@ install_shell_source() {
     backup_item "$ATOM_SHELL_DIR" quickshell/caelestia
     run mkdir -p "$ATOM_SHELL_DIR"
     local dir
-    for dir in assets components modules services utils; do
+    for dir in assets components modules services utils i18n translations; do
         run mkdir -p "$ATOM_SHELL_DIR/$dir"
         run rsync -a --delete "$ROOT/$dir/" "$ATOM_SHELL_DIR/$dir/"
     done
@@ -204,10 +242,28 @@ backup_item "$BIN_HOME/atomshell" bin/atomshell
 run mkdir -p "$BIN_HOME"
 run install -m 0755 "$ROOT/packaging/atomshell" "$BIN_HOME/atomshell"
 
-service_target=$CONFIG_HOME/systemd/user/atomshell-usb-notify.service
+if [[ -d "$ROOT/config/bin" ]]; then
+    for script in "$ROOT/config/bin"/*; do
+        [[ -f "$script" ]] || continue
+        name=$(basename -- "$script")
+        backup_item "$BIN_HOME/$name" "bin/$name"
+        run install -m 0755 "$script" "$BIN_HOME/$name"
+    done
+fi
+
+service_dir=$CONFIG_HOME/systemd/user
 if [[ $PROFILE == full ]]; then
+    run mkdir -p "$service_dir"
+    if [[ -d "$ROOT/config/systemd/user" ]]; then
+        for svc in "$ROOT/config/systemd/user"/*.service; do
+            [[ -f "$svc" ]] || continue
+            sname=$(basename -- "$svc")
+            backup_item "$service_dir/$sname" "systemd/user/$sname"
+            run install -m 0644 "$svc" "$service_dir/$sname"
+        done
+    fi
+    service_target=$service_dir/atomshell-usb-notify.service
     backup_item "$service_target" systemd/user/atomshell-usb-notify.service
-    run mkdir -p "$(dirname -- "$service_target")"
     run install -m 0644 "$ROOT/packaging/systemd/atomshell-usb-notify.service" "$service_target"
     run chmod +x "$ATOM_HYPR_DIR/scripts"/*.sh
     if [[ $DRY_RUN != true ]] && command -v systemctl >/dev/null 2>&1; then
@@ -226,3 +282,10 @@ fi
 log "Kurulum tamamlandı. Yedek: $BACKUP_DIR"
 log "Kontrol: $BIN_HOME/atomshell doctor"
 log "Başlat:  $BIN_HOME/atomshell restart"
+
+if [[ $DRY_RUN != true && $NON_INTERACTIVE != true && -t 0 && -n ${WAYLAND_DISPLAY:-} ]]; then
+    printf '\n'
+    if confirm "Atom Shell şimdi başlatılsın mı? / Launch Atom Shell now?" yes; then
+        "$BIN_HOME/atomshell" restart || "$BIN_HOME/atomshell" start || true
+    fi
+fi

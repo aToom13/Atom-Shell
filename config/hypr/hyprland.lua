@@ -68,7 +68,7 @@ local monitor_overrides = home .. "/.config/caelestia/monitor-overrides.tsv"
 local monitor_file = io.open(monitor_overrides, "r")
 if monitor_file then
     for line in monitor_file:lines() do
-        local output, mode, position, scale, transform = line:match("^([^\t]+)\t([^\t]+)\t([^\t]+)\t([^\t]+)\t([^\t]+)$")
+        local output, mode, position, scale, transform, enabled, mirror = line:match("^([^\t]+)\t([^\t]+)\t([^\t]+)\t([^\t]+)\t([^\t]+)\t?([^\t]*)\t?([^\t]*)$")
         if output then
             hl.monitor({
                 output    = output,
@@ -76,6 +76,8 @@ if monitor_file then
                 position  = position,
                 scale     = tonumber(scale) or 1,
                 transform = tonumber(transform) or 0,
+                disabled  = enabled == "0",
+                mirror    = mirror ~= "" and mirror or nil,
             })
         end
     end
@@ -83,6 +85,8 @@ if monitor_file then
 end
 
 -- Configs
+local keybind_editor = require("keybind-editor")
+keybind_editor.start()
 require("hyprland.env")
 require("hyprland.general")
 require("hyprland.input")
@@ -108,3 +112,8 @@ require("plugin-settings")
 
 -- HyprMod managed settings
 require("hyprland-gui")
+
+-- Keyboard layouts managed by Nexus, applied to the active Hyprland session.
+maybe_create(home .. "/.config/caelestia/keyboard-overrides.lua")
+require("keyboard-overrides")
+keybind_editor.finish()

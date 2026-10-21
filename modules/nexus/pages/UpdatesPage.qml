@@ -2,11 +2,13 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Caelestia
 import Caelestia.Config
 import qs.components
+import qs.components.containers
 import qs.components.controls
 import qs.services
 import qs.modules.nexus.common
@@ -18,8 +20,10 @@ PageBase {
     property string query
     property string sourceFilter: "all"
     property bool checking
+    readonly property bool updating: UpdateRunner.running
     property bool snapAvailable
     property string lastChecked: qsTr("Not checked yet")
+    property string checkError
 
     readonly property list<var> visibleUpdates: updates.filter(update => {
         const sourceMatches = sourceFilter === "all" || update.source === sourceFilter;
@@ -31,10 +35,6 @@ PageBase {
     readonly property int aurUpdates: updates.filter(update => update.source === "aur").length
     readonly property int flatpakUpdates: updates.filter(update => update.source === "flatpak").length
     readonly property int snapUpdates: updates.filter(update => update.source === "snap").length
-
-    function shellQuote(value: string): string {
-        return "'" + value.replace(/'/g, "'\\''") + "'";
-    }
 
     function parseArch(text: string, source: string): list<var> {
         return text.trim().split("\n").filter(line => line).map(line => {
@@ -74,10 +74,15 @@ PageBase {
     }
 
     function refresh(): void {
-        if (checking)
+        if (checking || updating)
             return;
         checking = true;
+        checkError = "";
         repoProc.running = aurProc.running = flatpakProc.running = snapProc.running = true;
+    }
+
+    function checkFailed(source: string, detail: string): void {
+        checkError += (checkError ? "\n" : "") + source + ": " + (detail.trim() || qsTr("Check failed"));
     }
 
     function finishOne(): void {
@@ -94,19 +99,20 @@ PageBase {
             name: item.name,
             current: item.current,
             next: item.next,
-            selected: item.source === source && item.id === id ? selected : item.selected
+            selected: ((source === "repo" || source === "aur") && (item.source === "repo" || item.source === "aur")) || (item.source === source && item.id === id) ? selected : item.selected
         }));
     }
 
     function selectVisible(selected: bool): void {
         const keys = new Set(visibleUpdates.map(item => `${item.source}\u0000${item.id}`));
+        const includesArch = visibleUpdates.some(item => item.source === "repo" || item.source === "aur");
         updates = updates.map(item => ({
             source: item.source,
             id: item.id,
             name: item.name,
             current: item.current,
             next: item.next,
-            selected: keys.has(`${item.source}\u0000${item.id}`) ? selected : item.selected
+            selected: (includesArch && (item.source === "repo" || item.source === "aur")) || keys.has(`${item.source}\u0000${item.id}`) ? selected : item.selected
         }));
     }
 
@@ -130,16 +136,7 @@ PageBase {
             return;
         }
 
-        const arch = selectedUpdates.filter(item => item.source === "repo" || item.source === "aur").map(item => shellQuote(item.id));
-        const flatpak = selectedUpdates.filter(item => item.source === "flatpak").map(item => shellQuote(item.id));
-        const snap = selectedUpdates.filter(item => item.source === "snap").map(item => shellQuote(item.id));
-        const commands = [];
-        if (arch.length) commands.push(`paru -S --needed ${arch.join(" ")}`);
-        if (flatpak.length) commands.push(`flatpak update ${flatpak.join(" ")}`);
-        if (snap.length) commands.push(`sudo snap refresh ${snap.join(" ")}`);
-        const body = commands.join(" && ");
-        Quickshell.execDetached(["kitty", "--title", qsTr("Selected Updates"), "-e", "bash", "-lc",
-            `${body}; code=$?; echo; if [ $code -eq 0 ]; then echo 'Selected updates completed.'; else echo \"Update exited with code $code.\"; fi; echo 'Press Enter to close.'; read -r`]);
+        UpdateRunner.start(selectedUpdates.map(item => ({source: item.source, id: item.id})));
     }
 
     title: qsTr("Updates")
@@ -149,33 +146,42 @@ PageBase {
         id: repoProc
         command: ["checkupdates"]
         stdout: StdioCollector { onStreamFinished: root.replaceSource("repo", root.parseArch(text, "repo")) }
-        onExited: root.finishOne()
+        stderr: StdioCollector { id: repoError }
+        onExited: code => { if (code !== 0 && code !== 2) root.checkFailed(qsTr("Official"), repoError.text); root.finishOne(); }
     }
 
     property Process aurProcess: Process {
         id: aurProc
         command: ["paru", "-Qua"]
         stdout: StdioCollector { onStreamFinished: root.replaceSource("aur", root.parseArch(text, "aur")) }
-        onExited: root.finishOne()
+        stderr: StdioCollector { id: aurError }
+        onExited: code => { if (code !== 0) root.checkFailed("AUR", aurError.text); root.finishOne(); }
     }
 
     property Process flatpakProcess: Process {
         id: flatpakProc
-        command: ["sh", "-c", "command -v flatpak >/dev/null && flatpak remote-ls --updates --columns=application,name,version,branch 2>/dev/null || true"]
+        command: ["sh", "-c", "if command -v flatpak >/dev/null; then exec flatpak remote-ls --updates --columns=application,name,version,branch; fi"]
         stdout: StdioCollector { onStreamFinished: root.replaceSource("flatpak", root.parseFlatpak(text)) }
-        onExited: root.finishOne()
+        stderr: StdioCollector { id: flatpakError }
+        onExited: code => { if (code !== 0) root.checkFailed("Flatpak", flatpakError.text); root.finishOne(); }
     }
 
     property Process snapProcess: Process {
         id: snapProc
-        command: ["sh", "-c", "if command -v snap >/dev/null; then printf '__AVAILABLE__\\n'; snap refresh --list 2>/dev/null || true; fi"]
+        command: ["sh", "-c", "if command -v snap >/dev/null; then printf '__AVAILABLE__\\n'; exec snap refresh --list; fi"]
         stdout: StdioCollector {
             onStreamFinished: {
                 root.snapAvailable = text.startsWith("__AVAILABLE__\n");
                 root.replaceSource("snap", root.parseSnap(root.snapAvailable ? text.slice("__AVAILABLE__\n".length) : ""));
             }
         }
-        onExited: root.finishOne()
+        stderr: StdioCollector { id: snapError }
+        onExited: code => { if (code !== 0) root.checkFailed("Snap", snapError.text); root.finishOne(); }
+    }
+
+    property Connections runnerConnection: Connections {
+        target: UpdateRunner
+        function onRunningChanged(): void { if (!UpdateRunner.running) root.refresh(); }
     }
 
     ColumnLayout {
@@ -197,19 +203,21 @@ PageBase {
                 spacing: Tokens.spacing.large
 
                 MaterialIcon {
-                    text: root.checking ? "sync" : root.updates.length > 0 ? "system_update" : "verified"
+                    text: root.checking ? "sync" : root.checkError ? "warning" : root.updates.length > 0 ? "system_update" : "verified"
                     color: root.updates.length > 0 ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
                     fontStyle: Tokens.font.icon.extraLarge
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 0
-                    StyledText { text: root.checking ? qsTr("Checking for updates…") : root.updates.length ? qsTr("%1 updates available").arg(root.updates.length) : qsTr("System is up to date"); font: Tokens.font.title.medium }
+                    StyledText { text: root.checking ? qsTr("Checking for updates…") : root.checkError ? qsTr("Some update checks failed") : root.updates.length ? qsTr("%1 updates available").arg(root.updates.length) : qsTr("System is up to date"); font: Tokens.font.title.medium }
                     StyledText { text: qsTr("%1 selected • Last checked: %2").arg(root.selectedUpdates.length).arg(root.lastChecked); color: Colours.palette.m3outline; font: Tokens.font.body.small }
                 }
-                IconButton { icon: "refresh"; type: IconButton.Text; disabled: root.checking; onClicked: root.refresh() }
+                IconButton { icon: "refresh"; type: IconButton.Text; disabled: root.checking || root.updating; onClicked: root.refresh() }
             }
         }
+
+        StyledText { Layout.fillWidth: true; visible: root.checkError !== ""; text: root.checkError; color: Colours.palette.m3error; font: Tokens.font.body.small; wrapMode: Text.WordWrap }
 
         StyledTextField {
             Layout.fillWidth: true
@@ -226,9 +234,9 @@ PageBase {
 
             FilterButton { source: "all"; label: qsTr("All"); iconName: "apps" }
             FilterButton { source: "repo"; label: qsTr("Official (%1)").arg(root.repoUpdates); iconName: "inventory_2" }
-            FilterButton { source: "aur"; label: "AUR (%1)".arg(root.aurUpdates); iconName: "deployed_code" }
-            FilterButton { source: "flatpak"; label: "Flatpak (%1)".arg(root.flatpakUpdates); iconName: "package_2" }
-            FilterButton { visible: root.snapAvailable; source: "snap"; label: "Snap (%1)".arg(root.snapUpdates); iconName: "deployed_code_account" }
+            FilterButton { source: "aur"; label: qsTr("AUR (%1)").arg(root.aurUpdates); iconName: "deployed_code" }
+            FilterButton { source: "flatpak"; label: qsTr("Flatpak (%1)").arg(root.flatpakUpdates); iconName: "package_2" }
+            FilterButton { visible: root.snapAvailable; source: "snap"; label: qsTr("Snap (%1)").arg(root.snapUpdates); iconName: "deployed_code_account" }
         }
 
         RowLayout {
@@ -240,14 +248,27 @@ PageBase {
             TextButton { text: qsTr("Clear shown"); type: TextButton.Text; onClicked: root.selectVisible(false) }
         }
 
-        Repeater {
+        VerticalFadeListView {
+            id: updatesList
+
+            Layout.fillWidth: true
+            Layout.topMargin: Tokens.spacing.large
+            Layout.preferredHeight: Math.max(Math.min(contentHeight + topMargin + bottomMargin, listMaxHeight), 96)
+            Layout.maximumHeight: listMaxHeight
+            Layout.minimumHeight: 96
+
+            property int listMaxHeight: Math.max(Math.round((root.flickable?.height ?? height) * 0.55), 96)
+
+            topMargin: Tokens.padding.small
+            bottomMargin: Tokens.padding.large
             model: root.visibleUpdates
+            spacing: 0
 
             delegate: ConnectedRect {
                 required property var modelData
                 required property int index
 
-                Layout.fillWidth: true
+                width: ListView.view.width
                 first: index === 0
                 last: index === root.visibleUpdates.length - 1
                 implicitHeight: packageLayout.implicitHeight + Tokens.padding.medium * 2
@@ -277,7 +298,7 @@ PageBase {
 
         StyledText {
             Layout.fillWidth: true
-            visible: !root.checking && root.visibleUpdates.length === 0
+            visible: !root.checking && root.visibleUpdates.length === 0 && (!root.checkError || root.updates.length > 0)
             Layout.topMargin: Tokens.spacing.large
             text: root.updates.length === 0 ? qsTr("No updates available") : qsTr("No packages match the current filter")
             horizontalAlignment: Text.AlignHCenter
@@ -291,18 +312,55 @@ PageBase {
             icon: "system_update_alt"
             text: qsTr("Update selected (%1)").arg(root.selectedUpdates.length)
             type: ButtonBase.Filled
-            disabled: root.selectedUpdates.length === 0
+            disabled: root.selectedUpdates.length === 0 || root.updating || root.checking
             onClicked: root.updateSelected()
         }
 
         StyledText {
             Layout.fillWidth: true
             Layout.topMargin: Tokens.spacing.medium
-            text: qsTr("Package changes and privilege prompts open in a terminal and always require your confirmation.")
+            text: qsTr("Arch and AUR packages update together to keep the system consistent. Package details, confirmations and password prompts appear below.")
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
             color: Colours.palette.m3outline
             font: Tokens.font.body.small
+        }
+
+        SectionHeader { visible: root.updating || UpdateRunner.output !== ""; text: root.updating ? qsTr("Updating…") : UpdateRunner.result === 0 ? qsTr("Updates completed") : qsTr("Update stopped (code %1)").arg(UpdateRunner.result) }
+        ScrollView {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 300
+            visible: root.updating || UpdateRunner.output !== ""
+            clip: true
+            TextArea {
+                id: transactionOutput
+                text: UpdateRunner.output
+                readOnly: true
+                selectByMouse: true
+                wrapMode: TextEdit.WrapAnywhere
+                color: Colours.palette.m3onSurface
+                font.family: "monospace"
+                font.pointSize: Tokens.font.label.small.pointSize
+                background: Rectangle { color: Colours.palette.m3surfaceContainerHigh; radius: Tokens.rounding.small }
+                Accessible.name: qsTr("Package transaction output")
+                onTextChanged: cursorPosition = length
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            visible: root.updating
+            StyledTextField {
+                id: response
+                Layout.fillWidth: true
+                echoMode: UpdateRunner.secretInput ? TextInput.Password : TextInput.Normal
+                placeholderText: UpdateRunner.secretInput ? qsTr("Password") : qsTr("Answer the package manager prompt")
+                onAccepted: { UpdateRunner.respond(text); clear(); }
+            }
+            IconTextButton {
+                text: qsTr("Send")
+                icon: "send"
+                onClicked: { UpdateRunner.respond(response.text); response.clear(); }
+            }
         }
     }
 

@@ -12,6 +12,13 @@ hl.bind(vars.kbClearNotifs, hl.dsp.global("caelestia:clearNotifs"), { locked = t
 hl.bind(vars.kbShowPanels, hl.dsp.global("caelestia:showall"))
 hl.bind(vars.kbLock, hl.dsp.global("caelestia:lock"))
 
+-- ThinkPad icon keys; ordinary F7-F12 remain available to applications.
+hl.bind("XF86Display", hl.dsp.exec_cmd("atomshell ipc call nexus togglePage 1"))
+hl.bind("XF86NotificationCenter", hl.dsp.global("caelestia:sidebar"))
+hl.bind("XF86PickupPhone", hl.dsp.exec_cmd("python3 " .. os.getenv("HOME") .. "/.config/hypr/scripts/desktop-assist.py stt"))
+hl.bind("XF86HangupPhone", hl.dsp.exec_cmd("atomshell ipc call picker openText"))
+hl.bind("XF86Favorites", hl.dsp.global("caelestia:help"))
+
 -- Restore lock
 hl.bind(vars.kbRestoreLock, function()
     hl.dispatch(hl.dsp.exec_cmd("atomshell start"))
@@ -26,9 +33,9 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.global("caelestia:brightnessDown"), { lo
 hl.bind("CTRL + SUPER + Space", hl.dsp.global("caelestia:mediaToggle"), { locked = true })
 hl.bind("XF86AudioPlay", hl.dsp.global("caelestia:mediaToggle"), { locked = true })
 hl.bind("XF86AudioPause", hl.dsp.global("caelestia:mediaToggle"), { locked = true })
-hl.bind("CTRL + SUPER + Equal", hl.dsp.global("caelestia:mediaNext"), { locked = true })
+hl.bind("CTRL + SUPER + Page_Down", hl.dsp.global("caelestia:mediaNext"), { locked = true })
 hl.bind("XF86AudioNext", hl.dsp.global("caelestia:mediaNext"), { locked = true })
-hl.bind("CTRL + SUPER + Minus", hl.dsp.global("caelestia:mediaPrev"), { locked = true })
+hl.bind("CTRL + SUPER + Page_Up", hl.dsp.global("caelestia:mediaPrev"), { locked = true })
 hl.bind("XF86AudioPrev", hl.dsp.global("caelestia:mediaPrev"), { locked = true })
 hl.bind("XF86AudioStop", hl.dsp.global("caelestia:mediaStop"), { locked = true })
 
@@ -80,32 +87,41 @@ hl.bind("CTRL + ALT + Tab", hl.dsp.group.next(), { repeating = true })
 hl.bind("CTRL + SHIFT + ALT + Tab", hl.dsp.group.prev(), { repeating = true })
 hl.bind(vars.kbToggleGroup, hl.dsp.group.toggle())
 hl.bind(vars.kbUngroup, hl.dsp.window.move({ out_of_group = true }))
-hl.bind("SUPER + SHIFT + Comma", hl.dsp.group.lock_active())
+hl.bind("SUPER + SHIFT + B", hl.dsp.group.lock_active())
 
 -- Window actions
 hl.bind("SUPER + left", hl.dsp.focus({ direction = "left" }))
 hl.bind("SUPER + right", hl.dsp.focus({ direction = "right" }))
 hl.bind("SUPER + up", hl.dsp.focus({ direction = "up" }))
 hl.bind("SUPER + down", hl.dsp.focus({ direction = "down" }))
-hl.bind("SUPER + SHIFT + left", hl.dsp.window.move({ direction = "left" }))
-hl.bind("SUPER + SHIFT + right", hl.dsp.window.move({ direction = "right" }))
-hl.bind("SUPER + SHIFT + up", hl.dsp.window.move({ direction = "up" }))
-hl.bind("SUPER + SHIFT + down", hl.dsp.window.move({ direction = "down" }))
-hl.bind("SUPER + Minus", hl.dsp.window.resize(fn.resize_active_window(-10, 0)), { repeating = true })
-hl.bind("SUPER + Equal", hl.dsp.window.resize(fn.resize_active_window(10, 0)), { repeating = true })
-hl.bind("SUPER + SHIFT + Minus", hl.dsp.window.resize(fn.resize_active_window(0, -10)), { repeating = true })
-hl.bind("SUPER + SHIFT + Equal", hl.dsp.window.resize(fn.resize_active_window(0, 10)), { repeating = true })
-hl.bind("SUPER + ALT + left", hl.dsp.window.resize(fn.resize_active_window(-10, 0)), { repeating = true })
-hl.bind("SUPER + ALT + right", hl.dsp.window.resize(fn.resize_active_window(10, 0)), { repeating = true })
-hl.bind("SUPER + ALT + up", hl.dsp.window.resize(fn.resize_active_window(0, -10)), { repeating = true })
-hl.bind("SUPER + ALT + down", hl.dsp.window.resize(fn.resize_active_window(0, 10)), { repeating = true })
+local captureWindowKeys = {}
+table.insert(captureWindowKeys, hl.bind("SUPER + SHIFT + left", hl.dsp.window.move({ direction = "left" })))
+table.insert(captureWindowKeys, hl.bind("SUPER + SHIFT + right", hl.dsp.window.move({ direction = "right" })))
+table.insert(captureWindowKeys, hl.bind("SUPER + SHIFT + up", hl.dsp.window.move({ direction = "up" })))
+table.insert(captureWindowKeys, hl.bind("SUPER + SHIFT + down", hl.dsp.window.move({ direction = "down" })))
+table.insert(captureWindowKeys, hl.bind("SUPER + ALT + left", fn.resize_active_window(-10, 0), { repeating = true }))
+table.insert(captureWindowKeys, hl.bind("SUPER + ALT + right", fn.resize_active_window(10, 0), { repeating = true }))
+table.insert(captureWindowKeys, hl.bind("SUPER + ALT + up", fn.resize_active_window(0, -10), { repeating = true }))
+table.insert(captureWindowKeys, hl.bind("SUPER + ALT + down", fn.resize_active_window(0, 10), { repeating = true }))
+
+-- Lease restores desktop arrows even if the capture shell crashes.
+local captureLease = hl.timer(function()
+    for _, binding in ipairs(captureWindowKeys) do binding:set_enabled(true) end
+end, { timeout = 2000, type = "oneshot" })
+captureLease:set_enabled(false)
+_G.caelestiaCaptureKeys = function(active)
+    for _, binding in ipairs(captureWindowKeys) do binding:set_enabled(not active) end
+    captureLease:set_enabled(false)
+    captureLease:set_timeout(2000)
+    captureLease:set_enabled(active)
+end
 
 hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind(vars.kbMoveWindow, hl.dsp.window.drag(), { mouse = true })
 hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 hl.bind(vars.kbResizeWindow, hl.dsp.window.resize(), { mouse = true })
-hl.bind("CTRL + SUPER + Backslash", hl.dsp.window.center())
-hl.bind("CTRL + SUPER + ALT + Backslash", function()
+hl.bind("CTRL + SUPER + O", hl.dsp.window.center())
+hl.bind("CTRL + SUPER + ALT + O", function()
     hl.dispatch(hl.dsp.window.resize(fn.resize_by_screen(55, 70)))
     hl.dispatch(hl.dsp.window.center())
 end)
@@ -131,9 +147,12 @@ hl.bind(vars.kbCloseWindow, hl.dsp.window.close())
 hl.bind(vars.kbSpecialWs, hl.dsp.exec_cmd("caelestia toggle specialws"))
 hl.bind(vars.kbSystemMonitorWs, hl.dsp.exec_cmd("caelestia toggle sysmon"))
 hl.bind(vars.kbMusicWs, hl.dsp.exec_cmd("caelestia toggle music"))
-hl.bind(vars.kbCommunicationWs, hl.dsp.exec_cmd("caelestia toggle communication"))
+hl.bind(vars.kbCommunicationWs, hl.dsp.exec_cmd("pgrep -f '[/]usr/lib/equibop/app.asar' >/dev/null || equibop --start-minimized & caelestia toggle communication"))
 hl.bind(vars.kbTodoWs, hl.dsp.exec_cmd("caelestia toggle todo"))
-hl.bind(vars.kbGamesWs, hl.dsp.exec_cmd("caelestia toggle games"))
+hl.bind(vars.kbGamesWs, function()
+    hl.exec_cmd("pgrep -x steam >/dev/null || exec " .. home .. "/.local/bin/steam-sw -silent", { workspace = "special:games silent" })
+    hl.exec_cmd("caelestia toggle games")
+end)
 
 -- Apps
 hl.bind(vars.kbTerminal, hl.dsp.exec_cmd(vars.terminal))
@@ -149,31 +168,58 @@ hl.bind("SUPER + SHIFT + H", hl.dsp.global("caelestia:help"))
 hl.bind("SUPER + Tab", hl.dsp.exec_cmd("qs ipc -c qs-hyprview call expose toggle smartgrid"))
 
 -- Utilities
-hl.bind("Print", hl.dsp.exec_cmd("dir=\"${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots\"; mkdir -p \"$dir\"; grim -o $(hyprctl monitors -j | jq -r '.[] | select(.focused).name') - | tee \"$dir/$(date +%Y%m%d%H%M%S).png\" | wl-copy"), { locked = true })
+hl.bind("Print", hl.dsp.global("caelestia:screenshotFreeze"))
 hl.bind("SUPER + SHIFT + S", hl.dsp.global("caelestia:screenshotFreeze"))
-hl.bind("SUPER + SHIFT + ALT + S", hl.dsp.global("caelestia:screenshot"))
-hl.bind("SUPER + ALT + R", hl.dsp.exec_cmd("caelestia record -s"))
-hl.bind("CTRL + ALT + R", hl.dsp.exec_cmd("caelestia record"))
-hl.bind("SUPER + SHIFT + ALT + R", hl.dsp.exec_cmd("caelestia record -r"))
 hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
 
 -- Volume
+-- A short lease keeps plain Tab available if the shell exits or reloads.
+local audioTab = hl.bind("Tab", function()
+    hl.exec_cmd("qs -c caelestia ipc call audio openMixer")
+end)
+audioTab:set_enabled(false)
+_G.caelestiaAudioMixerActive = false
+local audioLease = hl.timer(function()
+    audioTab:set_enabled(false)
+    _G.caelestiaAudioMixerActive = false
+end, { timeout = 2000, type = "oneshot" })
+audioLease:set_enabled(false)
+_G.caelestiaAudioKeys = function(mode)
+    audioTab:set_enabled(mode == "armed")
+    _G.caelestiaAudioMixerActive = mode == "mixer"
+    audioLease:set_enabled(false)
+    audioLease:set_timeout(2000)
+    audioLease:set_enabled(mode ~= "off")
+end
+
+local function audioVolume(direction)
+    if _G.caelestiaAudioMixerActive then
+        hl.exec_cmd("qs -c caelestia ipc call audio adjustMixer " .. direction)
+    else
+        hl.dispatch(hl.dsp.exec_cmd(direction > 0
+            and ("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l " .. (vars.volumeMax / 100) .. " @DEFAULT_AUDIO_SINK@ " .. vars.volumeStep .. "%+")
+            or ("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume @DEFAULT_AUDIO_SINK@ " .. vars.volumeStep .. "%-")))
+        hl.exec_cmd("qs -c caelestia ipc call audio showOsd")
+    end
+end
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
+hl.bind("XF86AudioMute", function()
+    if _G.caelestiaAudioMixerActive then
+        hl.exec_cmd("qs -c caelestia ipc call audio muteMixer")
+    else
+        hl.dispatch(hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"))
+        hl.exec_cmd("qs -c caelestia ipc call audio showOsd")
+    end
+end, { locked = true })
 hl.bind("SUPER + SHIFT + M", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
 hl.bind(
     "XF86AudioRaiseVolume",
-    hl.dsp.exec_cmd(
-        "wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l " ..
-        (vars.volumeMax / 100) .. " @DEFAULT_AUDIO_SINK@ " .. vars.volumeStep .. "%+"
-    ),
+    function() audioVolume(1) end,
     { locked = true, repeating = true }
 )
 hl.bind(
     "XF86AudioLowerVolume",
-    hl.dsp.exec_cmd(
-        "wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume @DEFAULT_AUDIO_SINK@ " .. vars.volumeStep .. "%-"
-    ),
+    function() audioVolume(-1) end,
     { locked = true, repeating = true }
 )
 

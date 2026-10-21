@@ -2,141 +2,120 @@
 
 [English](README.md) | **Türkçe**
 
-Atom Shell, Caelestia Shell v2.3 tabanı üzerinde geliştirilen, kendi güncelleme ve yedekleme sistemine sahip kişisel bir Hyprland masaüstü katmanıdır. Proje; özel Nexus sayfalarını, gelişmiş ağ tanılamayı, aygıt yönetimini ve taşınabilir Hyprland yapılandırmasını tek depoda tutar.
+Atom Shell, [Quickshell](https://github.com/outfoxxed/quickshell) ve Caelestia mimarisi üzerine kurulu, [Hyprland](https://hyprland.org) için geliştirilmiş modern, modüler ve akıcı bir masaüstü kabuğu (shell) ve yapılandırma sistemidir.
 
-> Atom Shell bağımsız bir fork’tur; Caelestia projesinin resmî sürümü değildir. İç QML ad alanları ve `~/.config/caelestia` şeması upstream uyumluluğu için korunur.
+Saf QML masaüstü bileşenlerini, 15 sayfalık etkileşimli Nexus ayarlar merkezini, telefon otomasyonunu, Tailscale mesh ağını, akıllı düşük pil hazırda bekletme yönetimini ve gelişmiş oyun modu optimizasyonlarını tek bir çatı altında birleştirir.
 
-## Öne çıkanlar
+---
 
-- Nexus içinde ekran, güncelleme, eklenti, klavye kısayolu, güç/kilit ve ayrıntılı servis ayarları
-- Wi‑Fi, Ethernet, kayıtlı ağlar, NetworkManager VPN profilleri ve v2.3 VPN sağlayıcı yönetimi
-- Canlı bağlantı bilgisi, ağ/DNS/HTTPS tanılama, LAN/USB/KDE Connect keşfi
-- Yapılandırılabilir görev çubuğu bileşenleri, durum simgeleri ve hızlı araçlar
-- Tek komutla kurulum, güncelleme, doktor, kaldırma ve yedekten geri alma
-- Mevcut kullanıcı dosyalarına dokunmadan önce tarih damgalı yedek
-- Arch/CachyOS için yerel; Debian/Ubuntu/Mint için Nix tabanlı modern Qt/Quickshell runtime’ı
+## 📸 Ekran Görüntüleri ve Arayüz Bileşenleri
 
-## Destek durumu
+Aşağıdaki görüntüler, temiz bir kurulumdan doğrudan 1080p olarak yakalanmıştır.
+
+| Masaüstü ve Üst Panel | Uygulama Başlatıcı (Launcher) |
+|:---:|:---:|
+| ![Masaüstü ve Panel](assets/screenshots/01-desktop-bar.png) | ![Başlatıcı](assets/screenshots/02-launcher.png) |
+
+| Kontrol Paneli Genel Bakış | Kontrol Paneli Medya ve Şarkı Sözleri |
+|:---:|:---:|
+| ![Genel Bakış](assets/screenshots/03-dashboard-overview.png) | ![Medya](assets/screenshots/04-dashboard-media.png) |
+
+| Telefon Entegrasyonu | Performans Gösterge Paneli |
+|:---:|:---:|
+| ![Telefon](assets/screenshots/05-dashboard-phone.png) | ![Performans](assets/screenshots/06-dashboard-performance.png) |
+
+| Nexus Ayarlar Merkezi | Oyun Modu ve Kare Üretimi Paneli |
+|:---:|:---:|
+| ![Nexus](assets/screenshots/11-nexus-settings.png) | ![Oyun Modu](assets/screenshots/15-game-mode-panel.png) |
+
+---
+
+## ✨ Öne Çıkan Özellikler
+
+- **🌐 Kapsamlı Çift Dilli Arayüz:** Tüm QML modüllerinde tam Türkçe ve İngilizce desteği (`qsTr()` katalogları ve Nexus üzerinden anında canlı dil değişimi).
+- **🎨 Material You Dinamik Renk Şeması:** Duvar kağıdından otomatik açık/koyu renk paleti türetme, bulanıklık ve şeffaflık kontrolleri.
+- **⚙️ Nexus Ayarlar Merkezi:** Ekran, ağ, Bluetooth, ses, güç, güncellemeler, eklentiler, kısayollar ve uygulamaları yöneten 15 modüler ayar sayfası.
+- **🎮 Oyun Modu ve Kare Üretimi:** Canlı FPS göstergesi (HUD), kompozitör bypass (direct scanout), GPU/CPU performans profili ve 3D test küpü.
+- **📱 Telefon ve Tailscale Entegrasyonu:** Canlı pil durumu, sürükle-bırak dosya transferi, scrcpy ile ekran yansıtma, uzaktan arama yanıtlama ve otomatik cihaz keşfi.
+- **🔋 Akıllı Hazırda Bekletme (Graceful Hibernation):** Pil kritik eşiğe indiğinde geri sayımlı uyarı ve güvenli disk kaydı.
+- **⌨️ Ergonomik Klavye Kısayolları:** Anında filtrelenebilir kısayol HUD arayıcısı (`F12` / `Super + Shift + H`) ve Hyprland Lua tuş atamaları.
+- **🛡️ Güvenli Kurulum ve Geri Alma:** Etkileşimli kurulum sihirbazı, tarih damgalı otomatik yedekler ve veri kaybettirmeyen yapılandırma birleştirme (`merge`).
+
+---
+
+## 💻 Desteklenen Dağıtımlar
 
 | Dağıtım | Runtime | Durum |
 |---|---|---|
-| Arch Linux | Yerel Qt 6.9+, Quickshell | Tam destek |
-| CachyOS | Yerel Qt 6.9+, Quickshell | Tam destek |
-| Debian 13/14 | Nix runtime + apt entegrasyon paketleri | Desteklenir |
-| Ubuntu / Linux Mint | Nix runtime + apt entegrasyon paketleri | Deneysel; Hyprland 0.55+ zorunlu |
+| **Arch Linux** | Yerel Qt 6.9+, Quickshell | 1. Seviye (Tam Yerel) |
+| **CachyOS** | Yerel Qt 6.9+, Quickshell | 1. Seviye (Tam Yerel) |
+| **Debian 13/14** | Nix runtime + apt entegrasyonu | Desteklenir |
+| **Ubuntu / Linux Mint** | Nix runtime + apt entegrasyonu | Desteklenir (Hyprland 0.55+ zorunlu) |
 
-Hyprland Lua yapılandırması 0.55 ile geldiği için daha eski Hyprland sürümleri çalışmaz. Ubuntu/Mint depolarındaki Hyprland eskiyse kurucu Nix profilindeki güncel Hyprland’ı ekler; oturum yöneticisinin bu binary’yi kullandığını ayrıca doğrulamak gerekir. Ayrıntılar: [Dağıtım notları](docs/DISTROS.tr.md).
+Dağıtıma özel ayrıntılar ve paket listeleri için [Dağıtım Kılavuzuna](docs/DISTROS.tr.md) bakabilirsiniz.
 
-## Kurulum
+---
+
+## 🚀 Hızlı Başlangıç ve Kurulum
+
+Atom Shell, bağımlılık kontrolleri içeren otomatik ve etkileşimli bir kurulum betiği sunar:
 
 ```bash
 git clone https://github.com/aToom13/Atom-Shell.git
 cd Atom-Shell
+
+# Etkileşimli kurulum sihirbazı
+./setup.sh
+```
+
+Alternatif olarak, `./install.sh` betiğini parametrelerle çalıştırabilirsiniz:
+
+```bash
+# Sistem dosyalarını değiştirmeden yapılacakları önizle
 ./install.sh --dry-run
-./install.sh
+
+# Soruları atlayarak otomatik kur
+./install.sh --non-interactive --config-mode merge
 ```
 
-Kurucu root olarak çalıştırılmaz. Sistem paketi gerektiğinde açıkça `sudo` çağırır.
+### Kurulum Sonrası Sağlık Denetimi
 
-Varsayılan `merge` modu mevcut `~/.config/caelestia` ve `~/.config/hypr` değerlerini korur; yalnızca eksik şablonları ekler. Bilinen eski v2.2 `bar.status` alanı ile eski Hyprland başlatma komutları, önce tam dizin yedeği alınarak v2.3/Atom Shell biçimine otomatik taşınır. Depodaki tam masaüstü ayarlarını uygulamak için:
+Kurulumu ve bağımlılıkları doğrulamak için yerleşik doktoru çalıştırın:
 
 ```bash
-./install.sh --config-mode replace
-```
-
-`replace`, önce iki dizini de yedekler. Diğer yararlı seçenekler:
-
-```text
---dry-run                 Değişiklik yapmadan planı gösterir
---no-packages             Paket yöneticisine dokunmaz
---no-build                Qt/QML runtime’ını yeniden derlemez
---profile minimal|full    Temel veya bütün entegrasyonlar
---runtime auto|native|nix Runtime yöntemini seçer
---install-nix             Nix yoksa resmî kurucuyu çalıştırır
---config-mode merge|replace|skip
-```
-
-Debian/Ubuntu/Mint üzerinde otomatik kurulum için:
-
-```bash
-./install.sh --install-nix
-```
-
-## Kullanım
-
-```bash
-atomshell start
-atomshell stop
-atomshell restart
-atomshell status
-atomshell settings
 atomshell doctor
 ```
 
-`~/.local/bin` PATH içinde değilse shell profilinize şunu ekleyin:
+---
+
+## 🕹️ Kabuk Yönetim Komutları
+
+Yönetim komutu `~/.local/bin/atomshell` olarak kurulur:
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+atomshell start      # Kabuğu arka planda başlat
+atomshell stop       # Aktif kabuğu güvenle durdur
+atomshell restart    # Kabuk bileşenlerini yeniden yükle
+atomshell nexus      # Nexus Ayarlar Merkezini aç
+atomshell doctor     # Sistem bağımlılıklarını denetle
+atomshell log        # Canlı quickshell günlüklerini izle
 ```
 
-## Güncelleme güvenliği
+---
 
-Normal sistem güncellemesi Atom Shell kaynaklarını silmez:
+## 📚 Modüler Belgeler
 
-- Shell kodu kullanıcıya ait `~/.config/quickshell/caelestia` dizinindedir.
-- Yerel derlenmiş eklentiler `~/.local/share/atomshell/runtime` altında tutulur.
-- `/usr/share` ve `/etc/xdg` içindeki `caelestia-shell` paket dosyaları değiştirilmez.
-- Quickshell, kullanıcı dizinini sistemdeki `/etc/xdg/quickshell/caelestia` kopyasından önce seçer.
+Ayrıntılı teknik rehberler modüler dökümanlara ayrılmıştır:
 
-Qt veya Quickshell ABI değiştiğinde yerel eklentiyi yeniden derlemek gerekir. Bunu güvenli güncelleyici yapar:
+- ⚙️ **[Nexus Ayarlar Merkezi Rehberi](docs/nexus.tr.md):** 15 kontrol sayfası ve yapılandırma durumu.
+- 🎮 **[Oyun Modu ve Kare Üretimi Rehberi](docs/game-mode.tr.md):** Frame Generation, oyun içi HUD, VRR ve test küpü.
+- 📱 **[Telefon ve Tailscale Rehberi](docs/phone-tailscale.tr.md):** KDE Connect, kablosuz ADB, pano senkronizasyonu ve SSH otomasyonu.
+- ⌨️ **[Klavye Kısayolları Rehberi](docs/shortcuts.tr.md):** Pencere yönetimi, özel alanlar ve kısayol arama HUD'ı.
+- 🏗️ **[Mimari ve Çalışma Mantığı](docs/ARCHITECTURE.tr.md):** Quickshell yaşam döngüsü, IPC çağrıları ve yapılandırma katmanları.
+- 🐧 **[Dağıtım Notları](docs/DISTROS.tr.md):** Platform gereksinimleri, paket listeleri ve Nix runtime ayrıntıları.
 
-```bash
-atomshell update --check
-atomshell update
-```
+---
 
-Güncelleyici kirli Git çalışma ağacında ilerlemez, yalnızca fast-forward kabul eder, smoke testini çalıştırır ve kurulumu yedekleyerek yeniler.
+## 📜 Lisans
 
-Shell’i doğrudan `qs -c caelestia` veya `caelestia shell` ile açmayın: sistemde v2.2 paketi kalmışsa v2.3 ayarlarını eski plugin ile yükler ve `Unknown option bar.statusIcons` uyarısı verir. `atomshell start/restart` her zaman projeye ait doğru runtime’ı seçer.
-
-## Yedek, geri alma ve kaldırma
-
-Yedekler burada tutulur:
-
-```text
-~/.local/state/atomshell/backups/YYYYMMDD-HHMMSS[-N]/
-```
-
-Bir yedeği listelemek veya geri yüklemek için:
-
-```bash
-./rollback.sh
-./rollback.sh ~/.local/state/atomshell/backups/20260813-150000
-```
-
-Kaldırma kullanıcı ayarlarını varsayılan olarak korur:
-
-```bash
-atomshell uninstall
-atomshell uninstall --purge-config
-```
-
-Kurucunun yüklediği sistem paketleri otomatik kaldırılmaz; başka masaüstü bileşenleri de onları kullanabilir.
-
-## Dizin yapısı
-
-```text
-assets/, components/, modules/, services/, utils/  Shell kaynakları
-plugin/, extras/                                    Derlenen uyumluluk modülleri
-config/caelestia/                                   Taşınabilir shell ayar şablonları
-config/hypr/                                        Hyprland Lua yapılandırması ve yardımcılar
-scripts/                                            Kurulum altyapısı
-docs/                                               Mimari ve dağıtım belgeleri
-tests/                                              Statik ve dry-run testleri
-```
-
-Geliştirme ve upstream birleştirme: [CONTRIBUTING.tr.md](CONTRIBUTING.tr.md). Güvenlik modeli: [SECURITY.tr.md](SECURITY.tr.md). Mimari: [ARCHITECTURE.tr.md](docs/ARCHITECTURE.tr.md).
-
-## Kaynak ve lisans
-
-Atom Shell, GPL-3.0-only lisanslı [Caelestia Shell](https://github.com/caelestia-dots/shell) projesinden türetilmiştir ve aynı lisansla dağıtılır. Orijinal proje ve katkıcılarının telif hakları korunur. Ayrıntı için [LICENSE](LICENSE) dosyasına bakın.
+Bu proje GNU Genel Kamu Lisansı v3.0 (GPL-3.0) altında lisanslanmıştır. Ayrıntılar için [LICENSE](LICENSE) dosyasına bakabilirsiniz. Upstream Caelestia Shell mimarisi ve katkıcılarına ait telif hakları saklıdır.

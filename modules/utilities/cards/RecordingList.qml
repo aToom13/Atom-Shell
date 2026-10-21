@@ -56,6 +56,8 @@ ColumnLayout {
 
         model: FileSystemModel {
             path: Paths.recsdir
+            recursive: true
+            filter: FileSystemModel.Files
             nameFilters: ["recording_*.mp4"]
             sortReverse: true
         }

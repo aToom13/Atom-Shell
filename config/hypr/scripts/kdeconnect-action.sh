@@ -74,13 +74,12 @@ case "$action" in
             exit 1
         fi
 
-        xdg-open "$browse_path" >/dev/null 2>&1 &
+        dolphin "$browse_path" >/dev/null 2>&1 &
         printf 'Opened phone storage: %s\n' "$browse_path"
         ;;
     install-sshfs)
-        notify-send --urgency=normal --app-name='Atom Shell' \
-            'KDE Connect needs SSHFS' \
-            'Install the sshfs package with your distribution package manager, then try again.'
+        exec kitty --title 'Install KDE Connect file support' -e bash -lc \
+            "echo 'KDE Connect file browsing needs the sshfs package.'; echo; sudo pacman -S --needed sshfs; code=\$?; echo; if [ \$code -eq 0 ]; then echo 'SSHFS installed. Return to Connected devices and press Browse again.'; else echo \"Installation exited with code \$code.\"; fi; echo 'Press Enter to close.'; read -r"
         ;;
     *)
         printf 'usage: %s {clipboard|share-text|browse|install-sshfs} DEVICE_ID\n' "$0" >&2

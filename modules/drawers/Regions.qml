@@ -50,6 +50,15 @@ Region {
     }
 
     R {
+        panel: root.panels.sessionWrapper
+        readonly property rect popup: root.panels.session.hibernationPopupRect
+        x: panel.x + root.panels.session.x + popup.x + root.bar.implicitWidth
+        y: panel.y + root.panels.session.y + popup.y + root.borderThickness
+        width: root.panels.session.visible ? popup.width : 0
+        height: popup.height
+    }
+
+    R {
         panel: root.panels.osdWrapper
         x: root.win.width - width
         width: panel.width * (1 - root.panels.osd.offsetScale) + root.borderThickness + sessionRegion.width

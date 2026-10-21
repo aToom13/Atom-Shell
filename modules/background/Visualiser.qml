@@ -15,7 +15,7 @@ Item {
     required property ShellScreen screen
     required property Item wallpaper
 
-    readonly property bool shouldBeActive: Config.background.visualiser.enabled && (!Config.background.visualiser.autoHide || (Hypr.monitorFor(screen)?.activeWorkspace?.toplevels?.values.every(t => t.lastIpcObject?.floating) ?? true))
+    readonly property bool shouldBeActive: !GameMode.pauseVisualisers && Config.background.visualiser.enabled && (!Config.background.visualiser.autoHide || (Hypr.monitorFor(screen)?.activeWorkspace?.toplevels?.values.every(t => t.lastIpcObject?.floating) ?? true))
     property real offset: shouldBeActive ? 0 : screen.height * 0.2
 
     opacity: shouldBeActive ? 1 : 0
@@ -23,7 +23,7 @@ Item {
     Loader {
         asynchronous: true
         anchors.fill: parent
-        active: root.opacity > 0 && Config.background.visualiser.blur
+        active: root.opacity > 0 && Config.background.visualiser.blur && !GameMode.disableBlur
 
         sourceComponent: MultiEffect {
             source: root.wallpaper

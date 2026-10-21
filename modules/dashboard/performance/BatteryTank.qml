@@ -9,7 +9,7 @@ import qs.services
 StyledClippingRect {
     id: root
 
-    property real animPerc: UPower.displayDevice.percentage
+    property real animPerc: BatteryEstimator.displayPercentage
 
     color: Colours.palette.m3secondaryContainer
     radius: Tokens.rounding.large
@@ -146,7 +146,7 @@ StyledClippingRect {
             }
 
             StyledText {
-                text: `${Math.round(UPower.displayDevice.percentage * 100)}%`
+                text: `${BatteryEstimator.displayPercent}%`
                 color: contents.accentColour
                 font: Tokens.font.headline.medium
             }

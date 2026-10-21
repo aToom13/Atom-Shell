@@ -1,0 +1,13 @@
+[Unit]
+Description=USB Notification Handler
+Documentation=man:notify-send(1)
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.config/hypr/scripts/usb-notify-handler.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

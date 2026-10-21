@@ -3,18 +3,18 @@ local fn   = require("hyprland.functions")
 
 hl.on("hyprland.start", function()
     -- Keyring and auth
-    hl.exec_cmd("sh -lc 'command -v gnome-keyring-daemon >/dev/null && exec gnome-keyring-daemon --start --components=secrets'")
-    hl.exec_cmd("sh -lc 'for agent in /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 /usr/libexec/polkit-gnome-authentication-agent-1 /usr/lib/polkit-kde-authentication-agent-1; do [ -x \"$agent\" ] && exec \"$agent\"; done'")
+    hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
+    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
 
     -- Clipboard history
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 
     -- Auto delete trash 30 days old
-    hl.exec_cmd("sh -lc 'command -v trash-empty >/dev/null && exec trash-empty 30'")
+    hl.exec_cmd("trash-empty 30")
 
     -- Load exactly the plugins enabled in HyprPM.
-    hl.exec_cmd("sh -lc 'command -v hyprpm >/dev/null && exec hyprpm reload -n'")
+    hl.exec_cmd("hyprpm reload -n")
 
     -- Cursors
     hl.exec_cmd("hyprctl setcursor " .. vars.cursorTheme .. " " .. vars.cursorSize)
@@ -22,23 +22,32 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-size " .. vars.cursorSize)
 
     -- Location provider and night light
-    hl.exec_cmd("sh -lc 'for agent in /usr/lib/geoclue-2.0/demos/agent /usr/libexec/geoclue-2.0/demos/agent; do [ -x \"$agent\" ] && exec \"$agent\"; done'")
-    hl.exec_cmd("sh -lc 'command -v gammastep >/dev/null && sleep 1 && exec gammastep'")
+    hl.exec_cmd("/usr/lib/geoclue-2.0/demos/agent")
+    hl.exec_cmd("sleep 1 && gammastep")
 
     -- Forward bluetooth media commands to MPRIS
-    hl.exec_cmd("sh -lc 'command -v mpris-proxy >/dev/null && exec mpris-proxy'")
+    hl.exec_cmd("mpris-proxy")
+
+    -- KDE Connect background service (no application window)
+    hl.exec_cmd("kdeconnectd")
 
     -- USB automount
-    hl.exec_cmd("sh -lc 'command -v udiskie >/dev/null && exec udiskie --no-notify'")
+    hl.exec_cmd("udiskie --no-notify")
 
     -- USB notification handler (udev + systemd user service)
-    hl.exec_cmd("systemctl --user start atomshell-usb-notify.service")
+    hl.exec_cmd("systemctl --user start atomshell-usb-notify.service || systemctl --user start usb-notify.service")
 
     -- Start shell
     hl.exec_cmd("atomshell start")
 
+    -- Publish the graphical environment before starting D-Bus and user services.
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP QT_QPA_PLATFORM && python3 ~/.config/quickshell/caelestia/utils/autostart.py session; systemctl --user start kdeconnect-tailscale.service")
+
+    -- Auto-start music on its hidden special workspace.
+    hl.exec_cmd("sleep 4 && exec env -u DISPLAY spotify --minimized", { workspace = "special:music silent" })
+
     -- Start window overview (qs-hyprview)
-    hl.exec_cmd("sh -lc 'command -v qs >/dev/null && [ -d \"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/qs-hyprview\" ] && exec qs -c qs-hyprview -n -d'")
+    hl.exec_cmd("qs -c qs-hyprview -n -d")
 end)
 
 -- Resizer listener

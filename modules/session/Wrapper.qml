@@ -10,6 +10,11 @@ Item {
     required property ScreenState screenState
     required property bool sidebarVisible
     readonly property real nonAnimWidth: content.implicitWidth
+    readonly property real hibernationPopupOpacity: content.item?.hibernationPopupOpacity ?? 0
+    readonly property rect hibernationPopupRect: {
+        const r = content.item?.hibernationPopupRect;
+        return r ? Qt.rect(content.x + r.x, content.y + r.y, r.width, r.height) : Qt.rect(0, 0, 0, 0);
+    }
 
     readonly property bool shouldBeActive: screenState.session && Config.session.enabled
     property real offsetScale: shouldBeActive ? 0 : 1

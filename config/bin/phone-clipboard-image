@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+state_dir="${XDG_RUNTIME_DIR:-/tmp}/phone-automation"
+mkdir -p "$state_dir"
+exec 9>"$state_dir/image.lock"
+flock -n 9 || exit 0
+
+image="$(mktemp --tmpdir="$state_dir" clipboard-XXXXXX.png)"
+trap 'rm -f "$image"' EXIT
+if [[ $# -gt 0 ]]; then
+    cp -- "$1" "$image"
+else
+    cat >"$image"
+fi
+
+[[ -s "$image" ]] || exit 0
+hash="$(sha256sum "$image" | cut -d' ' -f1)"
+[[ "$(cat "$state_dir/last-hash" 2>/dev/null || true)" != "$hash" ]] || exit 0
+
+devices="$(adb devices | awk 'NR > 1 && $2 == "device" {print $1}')"
+target="$(printf '%s\n' "$devices" | awk '/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.).*:5555$/ {print; exit}')"
+if [[ -z "$target" ]]; then
+    target="$(printf '%s\n' "$devices" | awk -F'[.:]' '$1 == 100 && $2 >= 64 && $2 <= 127 {print; exit}')"
+fi
+if [[ -z "$target" ]]; then
+    target="$(printf '%s\n' "$devices" | awk 'NF && $0 !~ /:/ {print; exit}')"
+fi
+if [[ -z "$target" ]]; then
+    notify-send -a "Phone Automation" "Görsel gönderilemedi" "Telefon ADB bağlantısı bulunamadı"
+    exit 1
+fi
+
+pkg="${PHONE_AUTOMATION_PKG:-com.atomshell.phoneautomation}"
+remote_dir="/sdcard/Android/data/${pkg}/files/Pictures"
+adb -s "$target" shell mkdir -p "$remote_dir"
+adb -s "$target" push "$image" "$remote_dir/clipboard.png" >/dev/null
+adb -s "$target" shell am broadcast \
+    -n "${pkg}/.ImageClipboardReceiver" \
+    -a "${pkg}.SET_IMAGE_CLIPBOARD" >/dev/null
+printf '%s' "$hash" >"$state_dir/last-hash"
+notify-send -a "Phone Automation" -i smartphoneconnected "Telefona gönderildi" "Görsel Android panosuna eklendi"

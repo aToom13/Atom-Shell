@@ -74,8 +74,12 @@ Item {
                     else
                         currentItem.modelData.onClicked(list.currentList);
                 } else {
-                    Apps.launch(currentItem.modelData);
-                    root.screenState.launcher = false;
+                    if (currentItem.modelData.isFolder)
+                        list.currentList.toggleFolder(currentItem.modelData.id);
+                    else {
+                        Apps.launch(currentItem.modelData);
+                        root.screenState.launcher = false;
+                    }
                 }
             }
         }

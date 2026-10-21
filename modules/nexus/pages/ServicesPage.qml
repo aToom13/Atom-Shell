@@ -6,6 +6,7 @@ import Caelestia.Services
 import qs.components
 import qs.components.controls
 import qs.services
+import qs.modules.nexus
 import qs.modules.nexus.common
 
 PageBase {
@@ -146,6 +147,15 @@ PageBase {
             text: qsTr("Notifications")
             subtext: qsTr("Notifications, toasts, timeouts")
             onClicked: root.nState.openSubPage(1)
+        }
+
+        NavRow {
+            first: true
+            last: true
+            icon: "gamepad"
+            text: qsTr("Game Mode")
+            subtext: qsTr("Performance, effects, notifications and sleep protection")
+            onClicked: root.nState.currentPageIdx = PageRegistry.gameModePageIndex
         }
 
         // Polling

@@ -15,7 +15,10 @@ Scope {
     required property Lock lock
     readonly property bool hasPlayer: Players.list.some(p => p.isPlaying)
     readonly property bool isCharging: !UPower.onBattery
+    property bool ultraScreenOff: false
     readonly property bool enabled: {
+        if (GameMode.inhibitIdle)
+            return false;
         if (GlobalConfig.general.idle.inhibitWhenAudio && hasPlayer)
             return false;
         if (GlobalConfig.general.idle.inhibitWhenCharging && isCharging)
@@ -25,6 +28,11 @@ Scope {
 
     function handleIdleAction(action: var): void {
         if (!action)
+            return;
+
+        // ponytail: keep locking/DPMS; defer automatic sleep during the pilot.
+        if (ShellState.shellRoot?.hibernation?.pilot
+            && /\b(suspend|hibernate|suspendThenHibernate|suspend-then-hibernate|hybridSleep|hybrid-sleep)\b/.test(Array.isArray(action) ? action.join(" ") : action))
             return;
 
         if (action === "lock")
@@ -54,6 +62,38 @@ Scope {
         target: SessionManager
     }
 
+    Connections {
+        target: GameMode
+        function onUltraEnabledChanged(): void {
+            if (!GameMode.ultraEnabled && root.ultraScreenOff) {
+                root.handleIdleAction("dpms on");
+                root.ultraScreenOff = false;
+            }
+        }
+    }
+
+    IdleMonitor {
+        enabled: GameMode.ultraEnabled
+        timeout: 30
+        respectInhibitors: true
+        onIsIdleChanged: GameMode.setUltraDimmed(isIdle)
+    }
+
+    IdleMonitor {
+        enabled: GameMode.ultraEnabled
+        timeout: 90
+        respectInhibitors: true
+        onIsIdleChanged: {
+            if (isIdle && GameMode.ultraEnabled) {
+                root.ultraScreenOff = true;
+                root.handleIdleAction("dpms off");
+            } else if (root.ultraScreenOff) {
+                root.handleIdleAction("dpms on");
+                root.ultraScreenOff = false;
+            }
+        }
+    }
+
     Variants {
         model: GlobalConfig.general.idle.timeouts
 
@@ -66,6 +106,10 @@ Scope {
                 if (modelData.inhibitWhenAudio && root.hasPlayer)
                     return false;
                 if (modelData.inhibitWhenCharging && root.isCharging)
+                    return false;
+                const action = Array.isArray(modelData.idleAction) ? modelData.idleAction[0] : modelData.idleAction;
+                if (GameMode.ultraEnabled && (root.hasPlayer || PhoneService.mediaPlaying)
+                    && ["suspend", "hibernate", "suspendThenHibernate", "suspend-then-hibernate", "hybridSleep"].includes(action))
                     return false;
                 return true;
             }

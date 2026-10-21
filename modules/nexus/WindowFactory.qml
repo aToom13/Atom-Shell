@@ -10,16 +10,48 @@ import qs.modules.nexus
 Singleton {
     id: root
 
+    property var windows: []
+
     function create(parent: Item, props: var): void {
-        nexusComp.createObject(parent ?? dummy, props);
+        if (props?.initialPage === PageRegistry.shortcutsPageIndex) {
+            const cached = windows.find(window => window.keepAlive);
+            if (cached) {
+                cached.openShortcuts(props.initialShortcutQuery);
+                return;
+            }
+        }
+        const window = nexusComp.createObject(parent ?? dummy, props);
+        if (window)
+            windows = windows.concat([window]);
     }
 
     function createForPage(page: int): void {
-        nexusComp.createObject(dummy, { initialPage: page });
+        create(null, { initialPage: page });
     }
 
     function createForSubPage(page: int, subPage: int): void {
-        nexusComp.createObject(dummy, { initialPage: page, initialSubPage: subPage });
+        create(null, { initialPage: page, initialSubPage: subPage });
+    }
+
+    function toggleShortcuts(): void {
+        togglePage(PageRegistry.shortcutsPageIndex);
+    }
+
+    function togglePage(page: int): void {
+        const opened = windows.filter(window => window.visible && window.currentPage === page);
+        if (opened.length)
+            opened.forEach(window => window.visible = false);
+        else
+            createForPage(page);
+    }
+
+    Timer {
+        interval: 1500
+        running: true
+        onTriggered: {
+            if (!root.windows.some(window => window.keepAlive))
+                root.create(null, { initialPage: PageRegistry.shortcutsPageIndex, visible: false });
+        }
     }
 
     QtObject {
@@ -34,12 +66,23 @@ Singleton {
 
             property int initialPage
             property int initialSubPage: -1
+            property string initialShortcutQuery
+            readonly property int currentPage: nexus.nState.currentPageIdx
+            readonly property bool keepAlive: initialPage === PageRegistry.shortcutsPageIndex
+            Component.onDestruction: root.windows = root.windows.filter(window => window !== win)
+
+            function openShortcuts(query: var): void {
+                if (query !== undefined)
+                    nexus.nState.shortcutQuery = query;
+                nexus.nState.currentPageIdx = PageRegistry.shortcutsPageIndex;
+                visible = true;
+            }
 
             color: Colours.tPalette.m3surface
             surfaceFormat.opaque: false
 
             onVisibleChanged: {
-                if (!visible)
+                if (!visible && !keepAlive)
                     destroy();
             }
 
@@ -61,11 +104,12 @@ Singleton {
                 nState.screen: win.screen
                 nState.isWindow: true
                 nState.currentPageIdx: win.initialPage
+                nState.shortcutQuery: win.initialShortcutQuery
                 Component.onCompleted: {
                     if (win.initialSubPage >= 0)
                         nState.openSubPage(win.initialSubPage);
                 }
-                onClose: win.destroy()
+                onClose: win.visible = false
             }
 
             Behavior on color {

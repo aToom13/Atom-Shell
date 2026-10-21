@@ -16,6 +16,8 @@ class CUtils : public QObject {
     Q_PROPERTY(QString qtVersion READ qtVersion CONSTANT)
 
 public:
+    explicit CUtils(QObject* parent = nullptr);
+
     // clang-format off
     Q_INVOKABLE void saveItem(QQuickItem* target, const QUrl& path);
     Q_INVOKABLE void saveItem(QQuickItem* target, const QUrl& path, const QRect& rect);
@@ -34,6 +36,8 @@ public:
     Q_INVOKABLE static QQuickItem* findChild(QQuickItem* root, const QString& name);
     Q_INVOKABLE static QList<QQuickItem*> findChildren(QQuickItem* root, const QString& name);
     Q_INVOKABLE static QList<QQuickItem*> findChildrenMatching(QQuickItem* root, const QString& pattern);
+
+    Q_INVOKABLE bool loadTranslation(const QString& language = QString());
 
     [[nodiscard]] QString version() const;
     [[nodiscard]] QString qtVersion() const;

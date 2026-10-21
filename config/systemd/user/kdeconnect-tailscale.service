@@ -1,0 +1,10 @@
+[Unit]
+Description=KDE Connect autostart and Tailscale device discovery
+After=dbus.socket
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/kdeconnect-tailscale-start
+RemainAfterExit=yes
+

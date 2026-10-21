@@ -1,7 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls as QQC
 import Quickshell.Services.UPower
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.services
@@ -9,11 +11,14 @@ import qs.services
 Column {
     id: root
 
+    readonly property real powerWatts: BatteryEstimator.hasData ? BatteryEstimator.avgPower1Min : Math.abs(UPower.displayDevice.changeRate)
+    readonly property real remainingSeconds: BatteryEstimator.estimatedSeconds > 0 ? BatteryEstimator.estimatedSeconds : (powerWatts > 0 ? Math.max(0, UPower.displayDevice.energy - UPower.displayDevice.energyFull * BatteryEstimator.reserveRatio) / powerWatts * 3600 : 0)
+
     spacing: Tokens.spacing.medium
-    width: Tokens.sizes.bar.batteryWidth
+    width: Math.max(Tokens.sizes.bar.batteryWidth, profiles.implicitWidth)
 
     StyledText {
-        text: UPower.displayDevice.isLaptopBattery ? qsTr("Remaining: %1%").arg(Math.round(UPower.displayDevice.percentage * 100)) : qsTr("No battery detected")
+        text: UPower.displayDevice.isLaptopBattery ? qsTr("Remaining: %1%").arg(BatteryEstimator.displayPercent) : qsTr("No battery detected")
     }
 
     StyledText {
@@ -33,12 +38,16 @@ Column {
             return comps.join(", ") || fallback;
         }
 
-        text: UPower.displayDevice.isLaptopBattery ? qsTr("Time %1: %2").arg(UPower.onBattery ? "remaining" : "until charged").arg(UPower.onBattery ? formatSeconds(BatteryEstimator.estimatedSeconds, "Calculating...") : formatSeconds(UPower.displayDevice.timeToFull, "Fully charged!")) : qsTr("Power profile: %1").arg(PowerProfile.toString(PowerProfiles.profile))
+        text: UPower.displayDevice.isLaptopBattery ? qsTr("Time %1: %2").arg(UPower.onBattery ? "remaining" : "until charged").arg(UPower.onBattery ? formatSeconds(root.remainingSeconds, "Calculating...") : formatSeconds(UPower.displayDevice.timeToFull, "Fully charged!")) : (GameMode.enabled ? I18n.t("Game Mode") : I18n.t("Power profile: %1", PowerProfile.toString(PowerProfiles.profile)))
     }
 
     StyledText {
-        text: UPower.onBattery && BatteryEstimator.hasData ? qsTr("~%1W").arg(BatteryEstimator.avgPower1Min.toFixed(1)) : ""
+        text: UPower.onBattery ? qsTr("~%1W").arg(root.powerWatts.toFixed(1)) : ""
         visible: text.length > 0
+    }
+
+    StyledText {
+        text: GameMode.ultraEnabled ? I18n.t("Mode: Ultra power saver") : GameMode.enabled ? I18n.t("Mode: Game mode") : I18n.t("Power profile: %1", PowerProfile.toString(PowerProfiles.profile))
     }
 
     Loader {
@@ -103,6 +112,10 @@ Column {
         id: profiles
 
         property string current: {
+            if (GameMode.ultraEnabled)
+                return ultra.icon;
+            if (GameMode.enabled)
+                return game.icon;
             const p = PowerProfiles.profile;
             if (p === PowerProfile.PowerSaver)
                 return saver.icon;
@@ -113,8 +126,8 @@ Column {
 
         anchors.horizontalCenter: parent.horizontalCenter
 
-        implicitWidth: saver.implicitHeight + balance.implicitHeight + perf.implicitHeight + Tokens.padding.medium * 2 + Tokens.spacing.largeIncreased * 2
-        implicitHeight: Math.max(saver.implicitHeight, balance.implicitHeight, perf.implicitHeight) + Tokens.padding.small
+        implicitWidth: ultra.implicitWidth + saver.implicitWidth + balance.implicitWidth + perf.implicitWidth + game.implicitWidth + Tokens.padding.extraSmall * 2 + Tokens.spacing.largeIncreased * 4
+        implicitHeight: Math.max(ultra.implicitHeight, saver.implicitHeight, balance.implicitHeight, perf.implicitHeight, game.implicitHeight) + Tokens.padding.small
 
         color: Colours.tPalette.m3surfaceContainer
         radius: Tokens.rounding.full
@@ -127,6 +140,13 @@ Column {
             state: profiles.current
 
             states: [
+                State {
+                    name: ultra.icon
+
+                    Fill {
+                        item: ultra
+                    }
+                },
                 State {
                     name: saver.icon
 
@@ -147,6 +167,13 @@ Column {
                     Fill {
                         item: perf
                     }
+                },
+                State {
+                    name: game.icon
+
+                    Fill {
+                        item: game
+                    }
                 }
             ]
 
@@ -156,34 +183,68 @@ Column {
         }
 
         Profile {
-            id: saver
+            id: ultra
 
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: Tokens.padding.extraSmall
 
+            icon: "battery_saver"
+            label: qsTr("Ultra pil tasarrufu")
+            enabled: GameMode.ready && !GameMode.busy && !GameProfiles.busy
+            onActivated: GameMode.setUltraEnabled(!GameMode.ultraEnabled)
+        }
+
+        Profile {
+            id: saver
+
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: ultra.right
+            anchors.leftMargin: Tokens.spacing.largeIncreased
+
             profile: PowerProfile.PowerSaver
             icon: "energy_savings_leaf"
+            label: qsTr("Pil tasarrufu")
+            enabled: GameMode.ready && !GameMode.busy
         }
 
         Profile {
             id: balance
 
-            anchors.centerIn: parent
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: saver.right
+            anchors.leftMargin: Tokens.spacing.largeIncreased
 
             profile: PowerProfile.Balanced
             icon: "balance"
+            label: qsTr("Dengeli")
+            enabled: GameMode.ready && !GameMode.busy
         }
 
         Profile {
             id: perf
 
             anchors.verticalCenter: parent.verticalCenter
-            anchors.right: parent.right
-            anchors.rightMargin: Tokens.padding.extraSmall
+            anchors.left: balance.right
+            anchors.leftMargin: Tokens.spacing.largeIncreased
 
             profile: PowerProfile.Performance
             icon: "rocket_launch"
+            label: qsTr("Performans")
+            enabled: GameMode.ready && !GameMode.busy
+        }
+
+        Profile {
+            id: game
+
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: perf.right
+            anchors.leftMargin: Tokens.spacing.largeIncreased
+
+            icon: "sports_esports"
+            label: qsTr("Oyun modu")
+            enabled: GameMode.ready && !GameMode.busy && !GameProfiles.busy
+            onActivated: GameMode.setEnabled(!GameMode.enabled)
         }
     }
 
@@ -198,8 +259,19 @@ Column {
     }
 
     component Profile: Item {
+        id: control
+
         required property string icon
-        required property int profile
+        required property string label
+        property int profile: -1
+        signal activated()
+
+        function activate(): void {
+            if (profile >= 0)
+                GameMode.selectPowerProfile(profile);
+            else
+                activated();
+        }
 
         implicitWidth: icon.implicitHeight + Tokens.padding.small
         implicitHeight: icon.implicitHeight + Tokens.padding.small
@@ -207,7 +279,17 @@ Column {
         StateLayer {
             radius: Tokens.rounding.full
             color: profiles.current === parent.icon ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
-            onClicked: PowerProfiles.profile = parent.profile
+            onClicked: control.activate()
+            activeFocusOnTab: true
+            Accessible.role: Accessible.Button
+            Accessible.name: control.label
+            Accessible.checkable: true
+            Accessible.checked: profiles.current === control.icon
+            Accessible.onPressAction: control.activate()
+            Keys.onSpacePressed: control.activate()
+            Keys.onReturnPressed: control.activate()
+            QQC.ToolTip.visible: containsMouse
+            QQC.ToolTip.text: control.label
         }
 
         MaterialIcon {

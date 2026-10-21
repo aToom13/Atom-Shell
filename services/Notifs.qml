@@ -29,8 +29,10 @@ Singleton {
         return false;
     }
 
-    function shouldShowPopup(): bool {
-        if (props.dnd || ShellState.anySidebarOpen())
+    function shouldShowPopup(urgency = NotificationUrgency.Normal): bool {
+        if (urgency === NotificationUrgency.Critical)
+            return true;
+        if (props.dnd || GameMode.muteNotifications || ShellState.anySidebarOpen())
             return false;
         if (GlobalConfig.notifs.fullscreen === "off" && hasFullscreen())
             return false;
@@ -95,7 +97,7 @@ Singleton {
             notif.tracked = true;
 
             const comp = notifComp.createObject(root, {
-                popup: root.shouldShowPopup(),
+                popup: root.shouldShowPopup(notif.urgency),
                 notification: notif
             });
             root.list = [comp, ...root.list];

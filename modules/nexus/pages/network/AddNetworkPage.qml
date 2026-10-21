@@ -13,8 +13,9 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    // Security model: index 0 = none, 1 = WPA/WPA2/WPA3 personal.
+    // Security model: WPA2 Personal, WPA3 Personal and open.
     readonly property bool secured: securitySelect.active !== noneItem
+    readonly property string securityMode: securitySelect.active === saeItem ? "sae" : secured ? "wpa-psk" : "none"
     property bool connecting: false
     property bool failed: false
     property bool success: false
@@ -35,7 +36,7 @@ PageBase {
         root.failed = false;
         root.connecting = true;
 
-        Nmcli.addHiddenNetwork(ssid, root.secured ? passwordField.text : "", root.secured ? "wpa" : "none", hiddenToggle.checked, result => {
+        Nmcli.addHiddenNetwork(ssid, root.secured ? passwordField.text : "", root.securityMode, hiddenToggle.checked, result => {
             root.connecting = false;
             if (result && result.success) {
                 root.success = true;
@@ -119,6 +120,12 @@ PageBase {
                     text: qsTr("WPA/WPA2/WPA3 Personal")
                 },
                 MenuItem {
+                    id: saeItem
+
+                    icon: "shield_lock"
+                    text: qsTr("WPA3 Personal (SAE)")
+                },
+                MenuItem {
                     id: noneItem
 
                     icon: "lock_open"
@@ -173,7 +180,7 @@ PageBase {
                 placeholderText: qsTr("Password")
                 leadingIcon: "key"
                 echoMode: TextInput.Password
-                supportingText: qsTr("WPA passwords are at least 8 characters")
+                supportingText: qsTr("Personal Wi-Fi passwords are at least 8 characters")
                 errorText: root.failed ? qsTr("Connection failed — check the password") : qsTr("Password must be at least 8 characters")
 
                 onAccepted: root.submit()

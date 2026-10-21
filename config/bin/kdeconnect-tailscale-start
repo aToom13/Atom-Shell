@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# KDE Connect'i baslatir ve Tailscale'deki Android adreslerini kesfe ekler.
+
+set -u
+
+config_file="$HOME/.config/kdeconnect/config"
+mkdir -p "$(dirname "$config_file")"
+
+# Acilista tailscaled'in tailnet bilgisini yuklemesini kisa sure bekle.
+for _ in {1..30}; do
+    state=$(tailscale status --json 2>/dev/null | jq -r '.BackendState // empty' 2>/dev/null)
+    [ "$state" = "Running" ] && break
+    sleep 1
+done
+
+android_ips=$(tailscale status --json 2>/dev/null | jq -r '
+    .Peer[]? | select(.OS == "android") | .TailscaleIPs[0] // empty
+' 2>/dev/null)
+
+if [ -n "$android_ips" ]; then
+    current=$(kreadconfig6 --file "$config_file" --group General --key customDevices 2>/dev/null || true)
+    combined=$(
+        printf '%s\n%s\n' "${current//,/$'\n'}" "$android_ips" |
+            awk 'NF && !seen[$0]++' |
+            paste -sd, -
+    )
+    kwriteconfig6 --file "$config_file" --group General --key customDevices "$combined"
+fi
+
+# Bu komut D-Bus uzerinden kdeconnectd'yi de otomatik baslatir.
+kdeconnect-cli --refresh >/dev/null 2>&1 || true

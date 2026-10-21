@@ -128,7 +128,7 @@ Slider {
 
                 Anim on waveProgress {
                     running: true
-                    paused: !root.animateWave
+                    paused: !root.animateWave || !root.visible || GameMode.reduceAnimations
                     from: 0
                     to: 1
                     duration: root.waveDuration

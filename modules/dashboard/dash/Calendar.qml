@@ -14,6 +14,7 @@ CustomMouseArea {
     id: root
 
     required property ScreenState screenState
+    readonly property var englishLocale: Qt.locale("en_GB")
 
     property date currentDate: screenState.dashboardDate
     readonly property int currMonth: currentDate.getMonth()
@@ -190,7 +191,7 @@ CustomMouseArea {
                 anchors.fill: parent
 
                 spacing: 3
-                locale: Qt.locale()
+                locale: root.englishLocale
 
                 delegate: Item {
                     id: dayItem

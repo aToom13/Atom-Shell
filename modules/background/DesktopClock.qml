@@ -16,7 +16,7 @@ Item {
 
     property real clockScale: Config.background.desktopClock.scale
     readonly property bool bgEnabled: Config.background.desktopClock.background.enabled
-    readonly property bool blurEnabled: bgEnabled && Config.background.desktopClock.background.blur && !GameMode.enabled
+    readonly property bool blurEnabled: bgEnabled && Config.background.desktopClock.background.blur && !GameMode.disableBlur
     readonly property bool invertColors: Config.background.desktopClock.invertColors
     readonly property bool useLightSet: Colours.light ? !invertColors : invertColors
     readonly property color safePrimary: useLightSet ? Colours.palette.m3primaryContainer : Colours.palette.m3primary
@@ -31,7 +31,7 @@ Item {
 
         anchors.fill: parent
 
-        layer.enabled: Config.background.desktopClock.shadow.enabled
+        layer.enabled: Config.background.desktopClock.shadow.enabled && !GameMode.disableShadows
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowColor: Colours.palette.m3shadow

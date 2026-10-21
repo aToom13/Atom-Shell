@@ -21,19 +21,25 @@ Item {
         property bool recordingListExpanded: false
         property string recordingConfirmDelete
         property string recordingMode
+        property bool gameModeExpanded: false
 
         reloadableId: "utilities"
     }
-    readonly property bool shouldBeActive: screenState.sidebar || (screenState.utilities && Config.utilities.enabled && !(screenState.session && Config.session.enabled))
+    readonly property bool shouldBeActive: content.status === Loader.Ready && (screenState.sidebar || (screenState.utilities && Config.utilities.enabled && !(screenState.session && Config.session.enabled)))
     readonly property real totalPadding: content.anchors.margins + CUtils.clamp(content.anchors.margins - Config.border.thickness, 0, content.anchors.margins)
     readonly property real nonAnimHeight: ((content.item as Content)?.nonAnimHeight ?? 0) + totalPadding
     property real offsetScale: shouldBeActive ? 0 : 1
     property real sidebarLerp
 
+    onOffsetScaleChanged: {
+        if (offsetScale === 1 && !shouldBeActive)
+            props.gameModeExpanded = false;
+    }
+
     visible: offsetScale < 1
     anchors.bottomMargin: (-implicitHeight - 5) * offsetScale
     implicitHeight: content.implicitHeight + totalPadding
-    implicitWidth: sidebar.width * (1 - sidebar.offsetScale) * horizontalStretch * sidebarLerp + Tokens.sizes.utilities.width * (1 - sidebarLerp)
+    implicitWidth: sidebar.width * (1 - sidebar.offsetScale) * horizontalStretch * sidebarLerp + (props.gameModeExpanded ? Math.min(520, screenState.modelData.width - 80) : Tokens.sizes.utilities.width) * (1 - sidebarLerp)
     opacity: 1 - offsetScale
 
     states: State {
@@ -67,7 +73,7 @@ Item {
     ]
 
     Behavior on offsetScale {
-        Anim {}
+        Anim { type: Anim.FastSpatial }
     }
 
     Loader {
@@ -77,8 +83,7 @@ Item {
         anchors.left: parent.left
         anchors.margins: Tokens.padding.large
 
-        asynchronous: true
-        active: root.shouldBeActive || root.visible
+        active: Config.utilities.enabled || Config.sidebar.enabled
 
         sourceComponent: Content {
             implicitWidth: root.implicitWidth - root.totalPadding

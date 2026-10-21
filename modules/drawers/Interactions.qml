@@ -67,7 +67,7 @@ CustomMouseArea {
     onContainsMouseChanged: {
         if (!containsMouse) {
             // Only hide if not activated by shortcut
-            if (!osdShortcutActive) {
+            if (!osdShortcutActive && !panels.osd.expanded) {
                 screenState.osd = false;
                 root.panels.osd.hovered = false;
             }
@@ -91,12 +91,17 @@ CustomMouseArea {
         }
     }
 
-    onPositionChanged: event => {
+    onEntered: updatePointer(mouseX, mouseY)
+    onPositionChanged: event => updatePointer(event.x, event.y)
+
+    function updatePointer(x: real, y: real): void {
+        if (panels.osd.expanded) {
+            panels.osd.hovered = inRightPanel(panels.osdWrapper, x, y);
+            return;
+        }
         if (popouts.isDetached)
             return;
 
-        const x = event.x;
-        const y = event.y;
         const dragX = x - dragStart.x;
         const dragY = y - dragStart.y;
 
@@ -119,7 +124,7 @@ CustomMouseArea {
 
         if (panels.sidebar.offsetScale === 1) {
             // Show osd on hover
-            const showOsd = inRightPanel(panels.osdWrapper, x, y);
+            const showOsd = !screenState.session && inRightPanel(panels.osdWrapper, x, y);
 
             // Always update visibility based on hover if not in shortcut mode
             if (!osdShortcutActive) {
@@ -158,7 +163,7 @@ CustomMouseArea {
         } else {
             const outOfSidebar = x < width - panels.sidebar.width * (1 - panels.sidebar.offsetScale);
             // Show osd on hover
-            const showOsd = outOfSidebar && inRightPanel(panels.osdWrapper, x, y);
+            const showOsd = !screenState.session && outOfSidebar && inRightPanel(panels.osdWrapper, x, y);
 
             // Always update visibility based on hover if not in shortcut mode
             if (!osdShortcutActive) {
