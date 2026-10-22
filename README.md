@@ -2,9 +2,9 @@
 
 **English** | [Türkçe](README.tr.md)
 
-Atom Shell is a modern, responsive desktop shell and configuration framework for [Hyprland](https://hyprland.org), built on top of [Quickshell](https://github.com/outfoxxed/quickshell) and the Caelestia architecture.
+Atom Shell is a customizable desktop shell for [Hyprland](https://hyprland.org), built with QML and [Quickshell](https://github.com/outfoxxed/quickshell) on the [Caelestia Shell](https://github.com/caelestia-dots/shell) architecture.
 
-It combines pure QML desktop modules, an interactive 15-page control center, phone automation, Tailscale mesh connectivity, advanced power and low-battery hibernation handling, and game mode optimization into a single, cohesive desktop environment.
+It brings the desktop bar, launcher, media controls, device management, and Nexus settings center into one interface. Setup and management scripts handle dependencies, configuration backups, updates, and rollback. Arch Linux and CachyOS are the primary native targets.
 
 ---
 
@@ -32,14 +32,14 @@ All screenshots are captured natively at 1080p from a clean installation.
 
 ## Features
 
-- ** Comprehensive Bilingual UI:** Full English and Turkish support across all QML modules (`qsTr()` catalogs and live language switching in Nexus).
-- ** Material You Dynamic Theming:** Wallpaper-derived color schemes, custom accent palettes, blur, and opacity controls.
-- ** Nexus Control Center:** 15 modular setting panels managing displays, networks, Bluetooth, audio, power, updates, plugins, shortcuts, and apps.
-- ** Game Mode & Frame Generation:** Real-time FPS overlay HUD, direct scanout passthrough, GPU/CPU performance governor, and 3D test cube.
-- ** Phone & Tailscale Integration:** Live battery state, drag-and-drop file transfers, scrcpy screen mirroring, remote call answering, and mesh discovery.
-- ** Graceful Low-Battery Hibernation:** Multi-stage countdown and secure snapshot to disk before battery exhaustion.
-- ** Ergonomic Keyboard Shortcuts:** Interactive search HUD (`F12` / `Super + Shift + H`) and conflict-free Hyprland Lua keybindings.
-- ** Safe Setup & Rollbacks:** Automated interactive installer, zero data loss policy, timestamped backups, and non-destructive configuration merges.
+- **Comprehensive Bilingual UI:** Full English and Turkish support across all QML modules (`qsTr()` catalogs and live language switching in Nexus).
+- **Material You Dynamic Theming:** Wallpaper-derived color schemes, custom accent palettes, blur, and opacity controls.
+- **Nexus Control Center:** 15 modular setting panels managing displays, networks, Bluetooth, audio, power, updates, plugins, shortcuts, and apps.
+- **Game Mode & Frame Generation:** Real-time FPS overlay HUD, direct scanout passthrough, GPU/CPU performance governor, and 3D test cube.
+- **Phone & Tailscale Integration:** Live battery state, drag-and-drop file transfers, scrcpy screen mirroring, remote call answering, and mesh discovery.
+- **Graceful Low-Battery Hibernation:** Multi-stage countdown and secure snapshot to disk before battery exhaustion.
+- **Ergonomic Keyboard Shortcuts:** Interactive search HUD (`F12` / `Super + Shift + H`) and conflict-free Hyprland Lua keybindings.
+- **Safe Setup & Rollbacks:** Interactive setup, timestamped backups, and configuration merge and rollback tools.
 
 ---
 
@@ -50,7 +50,7 @@ All screenshots are captured natively at 1080p from a clean installation.
 | **Arch Linux** | Native Qt 6.9+, Quickshell | Tier 1 (Full Native) |
 | **CachyOS** | Native Qt 6.9+, Quickshell | Tier 1 (Full Native) |
 | **Debian 13/14** | Nix runtime + apt integration | Supported |
-| **Ubuntu / Linux Mint** | Nix runtime + apt integration | Supported (Requires Hyprland 0.55+) |
+| **Ubuntu / Linux Mint** | Nix runtime + apt integration | Experimental (requires Hyprland 0.55+) |
 
 For distribution-specific prerequisites and details, refer to the [Distribution Guide](docs/DISTROS.md).
 
@@ -58,7 +58,9 @@ For distribution-specific prerequisites and details, refer to the [Distribution 
 
 ## Quick Start & Installation
 
-Atom Shell provides an automated, interactive installation script with dependency checks:
+Requirements: Hyprland 0.55+, Qt 6.9+, and Quickshell 0.3 or a current Git build. The installer handles platform-specific dependencies; review the [Distribution Guide](docs/DISTROS.md) before setup.
+
+Clone the repository and start the interactive setup wizard:
 
 ```bash
 git clone https://github.com/aToom13/Atom-Shell.git
@@ -80,7 +82,7 @@ Alternatively, you can run `./install.sh` with granular command-line flags:
 
 ### Post-Installation & Health Check
 
-Run the built-in diagnostic tool to verify all components and dependencies:
+Run the built-in diagnostic tool to check dependencies and report missing integrations:
 
 ```bash
 atomshell doctor
@@ -107,12 +109,13 @@ atomshell log        # Stream live quickshell logs
 
 Detailed topics and technical guides are split into dedicated documents:
 
--  **[Nexus Control Center Guide](docs/nexus.md):** Deep dive into the 15 control pages and configuration state.
--  **[Game Mode & Optimization Guide](docs/game-mode.md):** Frame Generation, in-game HUD, VRR, and test cube.
--  **[Phone & Tailscale Integration](docs/phone-tailscale.md):** KDE Connect, wireless ADB, clipboard sync, and SSH automation.
--  **[Keyboard Shortcuts Guide](docs/shortcuts.md):** Window tiling, special workspaces, and shortcut search HUD.
--  **[Architecture & Runtime](docs/ARCHITECTURE.md):** Quickshell lifecycle, IPC mechanisms, and configuration hierarchy.
--  **[Distribution Notes](docs/DISTROS.md):** Platform requirements, package lists, and Nix runtime details.
+- **[Nexus Control Center Guide](docs/nexus.md):** Deep dive into the 15 control pages and configuration state.
+- **[Game Mode & Optimization Guide](docs/game-mode.md):** Frame Generation, in-game HUD, VRR, and test cube.
+- **[Phone & Tailscale Integration](docs/phone-tailscale.md):** KDE Connect, wireless ADB, clipboard sync, and SSH automation.
+- **[Keyboard Shortcuts Guide](docs/shortcuts.md):** Window tiling, special workspaces, and shortcut search HUD.
+- **[Architecture & Runtime](docs/ARCHITECTURE.md):** Quickshell lifecycle, IPC mechanisms, and configuration hierarchy.
+- **[Distribution Notes](docs/DISTROS.md):** Platform requirements, package lists, and Nix runtime details.
 
----
-preserved.
+## License and upstream
+
+Licensed under [GPL-3.0](LICENSE). Atom Shell builds on Caelestia Shell; upstream copyright and license notices are retained.
